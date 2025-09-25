@@ -1,0 +1,72 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Django
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+media/
+staticfiles/
+.env.prod
+
+# Virtual Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+scripts/
+
+# Project Specific
+.gemini
+google-cloud-sdk/
+data/
+data/processed/
+data/raw/
+data/scripts/
+data/scripts/uci_schema.json
+data/scripts/kaggle_profile.json
+
+# IDEs and Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS Generated Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Test Outputs & Generated Artifacts
+ui_snapshots/
+test_output.txt
+test_results.txt
+test_out.txt
+test_stderr.txt
+coverage_html_report/
+.coverage
+walkthrough.md
+implementation_plan.md
+task.md
+scratch/
+
+# Unused Setup / Utility Scripts
+make_testing_zip.py
+
+# Pictures and Media (Ignore untracked images to keep repo clean)
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.webp
+*.svg
