@@ -7,6 +7,11 @@ from django.contrib.auth.decorators import login_required
 
 from .forms import CaregiverRegistrationForm, UserRegistrationForm, LoginForm
 
+def root_redirect(request: HttpRequest) -> HttpResponse:
+    if request.user.is_authenticated:
+        return redirect(reverse("dashboard"))
+    return redirect(reverse("login"))
+
 @require_http_methods(["GET", "POST"])
 def register(request: HttpRequest) -> HttpResponse:
     if request.method == "GET":
