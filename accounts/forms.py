@@ -34,9 +34,23 @@ class UserRegistrationForm(CaregiverRegistrationForm):
     pass
 
 
-class LoginForm(AuthenticationForm):
+class LoginForm(forms.Form):
     """Login form supporting username/email and password."""
-    identifier = forms.CharField(label="Username or Email", max_length=254)
+    identifier = forms.CharField(
+        label="Username or Email",
+        max_length=254,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Username or email address'
+        })
+    )
+    password = forms.CharField(
+        label="Password",
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter your password'
+        })
+    )
 
     def clean(self):
         identifier = self.cleaned_data.get("identifier")

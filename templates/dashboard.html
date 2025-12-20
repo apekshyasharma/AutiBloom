@@ -1,0 +1,260 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Dashboard - AutiBloom{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Personalized Greeting -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h2 fw-bold text-dark mb-1">
+                        Welcome back, <span class="text-success">{{ user.first_name|default:user.username }}</span>!
+                    </h1>
+                    <p class="text-muted mb-0">
+                        Today is <strong>{{ "now"|date:"l, F j, Y" }}</strong>
+                    </p>
+                </div>
+                <div class="text-end">
+                    <p class="text-muted small mb-0">Role: <strong>{{ user.role|title }}</strong></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Log Today's Symptoms Card -->
+    <div class="row mb-5">
+        <div class="col-12 col-lg-8">
+            <div class="card border-0 shadow-sm" style="border-radius: 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                <div class="card-body p-5">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h3 class="card-title fw-bold mb-2">Log Today's Symptoms</h3>
+                            <p class="card-text mb-0 opacity-90">
+                                Help us track your child's symptoms and behaviors for better insights and support.
+                            </p>
+                        </div>
+                        <div class="ms-4">
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather">
+                                <path d="M12 5v14M5 12h14"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <a href="#" class="btn btn-light btn-lg fw-bold" style="border-radius: 8px;">
+                            <i class="bi bi-plus-circle"></i> Log Symptoms Now
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Stats Card -->
+        <div class="col-12 col-lg-4">
+            <div class="card border-0 shadow-sm h-100" style="border-radius: 12px;">
+                <div class="card-body p-4">
+                    <h5 class="card-title fw-bold text-dark mb-4">This Week</h5>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="text-muted">Logs Recorded</span>
+                        <strong class="h5 text-success mb-0">5</strong>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="text-muted">Days Tracked</span>
+                        <strong class="h5 text-primary mb-0">5</strong>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="text-muted">Consistency</span>
+                        <strong class="h5 text-info mb-0">100%</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Weekly Summary Section -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <h3 class="fw-bold text-dark mb-4">Weekly Summary</h3>
+        </div>
+
+        <!-- Average Symptom Severity Card -->
+        <div class="col-12 col-md-6 col-lg-4 mb-4">
+            <div class="card border-0 shadow-sm h-100" style="border-radius: 12px; transition: all 0.3s ease;">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <h5 class="card-title fw-bold text-dark mb-1">Average Symptom Severity</h5>
+                            <p class="text-muted small mb-0">Based on this week's logs</p>
+                        </div>
+                        <span class="badge bg-warning text-dark" style="border-radius: 50%; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; font-size: 1.25rem;">5.2</span>
+                    </div>
+                    <div class="progress" style="height: 6px; border-radius: 3px;">
+                        <div class="progress-bar bg-warning" role="progressbar" style="width: 52%" aria-valuenow="52" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                    <p class="text-muted small mt-3 mb-0">Moderate severity level. Consistent with last week.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Most Frequent Behavior Card -->
+        <div class="col-12 col-md-6 col-lg-4 mb-4">
+            <div class="card border-0 shadow-sm h-100" style="border-radius: 12px; transition: all 0.3s ease;">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <h5 class="card-title fw-bold text-dark mb-1">Most Frequent Behavior</h5>
+                            <p class="text-muted small mb-0">This week's top behavior</p>
+                        </div>
+                        <span class="badge bg-info text-white" style="border-radius: 50%; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; font-size: 1.25rem;">8</span>
+                    </div>
+                    <h6 class="fw-bold text-dark mb-2">Repetitive Hand Movements</h6>
+                    <p class="text-muted small mb-0">Recorded 8 times this week. Consider implementing sensory activities.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Overall Trend Card -->
+        <div class="col-12 col-md-6 col-lg-4 mb-4">
+            <div class="card border-0 shadow-sm h-100" style="border-radius: 12px; transition: all 0.3s ease;">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <h5 class="card-title fw-bold text-dark mb-1">Overall Trend</h5>
+                            <p class="text-muted small mb-0">7-day comparison</p>
+                        </div>
+                        <span class="badge bg-success text-white" style="border-radius: 50%; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; font-size: 1.25rem;">
+                            <i class="bi bi-arrow-down"></i>
+                        </span>
+                    </div>
+                    <h6 class="fw-bold text-success mb-2">↓ Improving</h6>
+                    <p class="text-muted small mb-0">Overall severity decreased by 12% compared to last week. Great progress!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Behavior & Symptom Trends Section -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm" style="border-radius: 12px;">
+                <div class="card-body p-5">
+                    <h3 class="fw-bold text-dark mb-4">Behavior & Symptom Trends</h3>
+                    
+                    <!-- Placeholder for Chart -->
+                    <div class="bg-light p-5 rounded" style="border-radius: 12px; text-align: center; min-height: 300px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-muted mb-3" style="opacity: 0.5;">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <polyline points="19 12 12 19 5 12"></polyline>
+                            <polyline points="12 5 5 12 12 19"></polyline>
+                        </svg>
+                        <p class="text-muted mb-0">
+                            <strong>Chart Coming Soon</strong><br>
+                            <small>Trend visualization will display here once data is collected.</small>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Insights Section -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm" style="border-radius: 12px; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                <div class="card-body p-5" style="color: white;">
+                    <div class="row align-items-center">
+                        <div class="col-12 col-lg-8">
+                            <h3 class="fw-bold mb-3">
+                                <i class="bi bi-lightbulb"></i> AI Insights
+                            </h3>
+                            <p class="mb-2">
+                                Based on this week's data, we noticed that <strong>repetitive hand movements</strong> are most frequent during transitions between activities. 
+                            </p>
+                            <p class="mb-0">
+                                <strong>Recommendation:</strong> Consider creating visual schedules or advance warnings before activity changes to help reduce anxiety-driven behaviors.
+                            </p>
+                        </div>
+                        <div class="col-12 col-lg-4 text-end mt-4 mt-lg-0">
+                            <a href="#" class="btn btn-light fw-bold" style="border-radius: 8px;">
+                                View More Insights
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Secondary Navigation Actions -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm" style="border-radius: 12px;">
+                <div class="card-body p-5">
+                    <h4 class="fw-bold text-dark mb-4">Quick Actions</h4>
+                    <div class="row">
+                        <div class="col-12 col-md-6 col-lg-3 mb-3">
+                            <a href="#" class="btn btn-outline-primary w-100 py-3 fw-bold" style="border-radius: 8px; transition: all 0.3s ease;">
+                                <i class="bi bi-file-text"></i> View Logs
+                            </a>
+                        </div>
+                        <div class="col-12 col-md-6 col-lg-3 mb-3">
+                            <a href="#" class="btn btn-outline-info w-100 py-3 fw-bold" style="border-radius: 8px; transition: all 0.3s ease;">
+                                <i class="bi bi-bar-chart"></i> Weekly Report
+                            </a>
+                        </div>
+                        <div class="col-12 col-md-6 col-lg-3 mb-3">
+                            <a href="#" class="btn btn-outline-success w-100 py-3 fw-bold" style="border-radius: 8px; transition: all 0.3s ease;">
+                                <i class="bi bi-person"></i> Profile
+                            </a>
+                        </div>
+                        <div class="col-12 col-md-6 col-lg-3 mb-3">
+                            <a href="#" class="btn btn-outline-secondary w-100 py-3 fw-bold" style="border-radius: 8px; transition: all 0.3s ease;">
+                                <i class="bi bi-question-circle"></i> Help & Support
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    body {
+        background-color: #f8fafc;
+    }
+
+    .card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12) !important;
+        transition: all 0.3s ease;
+    }
+
+    .btn-outline-primary:hover,
+    .btn-outline-info:hover,
+    .btn-outline-success:hover,
+    .btn-outline-secondary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+    }
+
+    .badge {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+        color: #1a202c;
+        letter-spacing: -0.5px;
+    }
+
+    .text-success {
+        color: #10b981 !important;
+    }
+
+    .progress {
+        background-color: #e5e7eb;
+    }
+</style>
+{% endblock %}

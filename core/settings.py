@@ -128,6 +128,11 @@ SESSION_COOKIE_SECURE = not DEBUG
 CSRF_COOKIE_SECURE = not DEBUG
 
 
+# Email Configuration
+# https://docs.djangoproject.com/en/6.0/topics/email/
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+
+
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
 
@@ -145,6 +150,8 @@ USE_TZ = True
 
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
+STATICFILES_DIRS = [BASE_DIR / "static"]
+
 # Use custom User model with role-based access for AutiBloom
 AUTH_USER_MODEL = 'accounts.User'
 
