@@ -2,7 +2,8 @@ from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import redirect
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required  
 
 from .forms import UserRegistrationForm, LoginForm
 
@@ -37,3 +38,12 @@ def login_view(request: HttpRequest) -> HttpResponse:
 
     login(request, user)
     return redirect(reverse("dashboard"))
+
+@login_required(login_url="login")
+def dashboard(request: HttpRequest) -> HttpResponse:
+    return HttpResponse("Dashboard")
+
+@require_http_methods(["GET", "POST"])
+def logout_view(request):
+    logout(request)
+    return redirect(reverse("login"))
