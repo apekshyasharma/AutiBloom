@@ -29,3 +29,6 @@ media/
 # OS files
 .DS_Store
 Thumbs.db
+
+instructions:
+.github/instructions/instructions.md
