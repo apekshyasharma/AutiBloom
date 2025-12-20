@@ -5,7 +5,7 @@ from django.views.decorators.http import require_http_methods
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required  
 
-from .forms import UserRegistrationForm, LoginForm
+from .forms import CaregiverRegistrationForm, UserRegistrationForm, LoginForm
 
 @require_http_methods(["GET", "POST"])
 def register(request: HttpRequest) -> HttpResponse:
