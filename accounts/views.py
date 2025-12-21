@@ -51,7 +51,59 @@ def login_view(request):
 
 @login_required
 def dashboard(request):
-    return render(request, "dashboard.html")  # ✅ Fixed: changed from "accounts/dashboard.html"
+    """Caregiver dashboard with role-based access control"""
+    user_role = get_user_role(request.user)
+    
+    # Only caregivers can access the dashboard
+    if user_role != "caregiver":
+        return HttpResponseForbidden("You do not have permission to access this page.")
+    
+    # Get user's symptom tracking records, ordered by newest first
+    symptoms = SymptomTracking.objects.filter(user=request.user).order_by("-created_at")
+    
+    # Get latest symptom entry
+    latest_symptom = symptoms.first()
+    
+    # Calculate support status label based on latest symptom
+    support_status = None
+    support_explanation = None
+    
+    if latest_symptom:
+        support_status, support_explanation = get_support_status(latest_symptom)
+    
+    context = {
+        "symptoms": symptoms,
+        "latest_symptom": latest_symptom,
+        "support_status": support_status,
+        "support_explanation": support_explanation,
+    }
+    
+    return render(request, "dashboard.html", context)
+
+
+def get_support_status(symptom):
+    """
+    Map symptom severity to friendly support labels.
+    
+    Returns: (label, explanation)
+    """
+    severity = symptom.severity
+    
+    if severity <= 3:
+        return (
+            "Doing Well This Week",
+            "Your child is managing well. Keep up the great support!"
+        )
+    elif severity <= 6:
+        return (
+            "Needs a Little Extra Support",
+            "Consider implementing additional strategies this week."
+        )
+    else:
+        return (
+            "Support Recommended",
+            "We recommend reaching out to your healthcare team for guidance."
+        )
 
 
 @login_required
@@ -116,7 +168,7 @@ def symptom_tracking_create(request):
             symptom.user = request.user  # Bind to current user
             symptom.save()
             messages.success(request, "Symptom tracked successfully.")
-            return redirect("symptom_tracking_list")
+            return redirect("dashboard")
     else:
         form = SymptomTrackingForm()
 
@@ -139,7 +191,7 @@ def symptom_tracking_update(request, pk):
         if form.is_valid():
             form.save()
             messages.success(request, "Symptom updated successfully.")
-            return redirect("symptom_tracking_list")
+            return redirect("dashboard")
     else:
         form = SymptomTrackingForm(instance=symptom)
 
@@ -160,6 +212,6 @@ def symptom_tracking_delete(request, pk):
     if request.method == "POST":
         symptom.delete()
         messages.success(request, "Symptom deleted successfully.")
-        return redirect("symptom_tracking_list")
+        return redirect("dashboard")
 
     return render(request, "symptom_tracking_confirm_delete.html", {"symptom": symptom})

@@ -1,15 +1,31 @@
 from django.urls import path
 from django.contrib.auth import views as auth_views
-from .views import register, login_view, logout_view, dashboard
+from . import views
 
 urlpatterns = [
-    path("register/", register, name="register"),
-    path("login/", login_view, name="login"),
-    path("logout/", logout_view, name="logout"),
-    path("dashboard/", dashboard, name="dashboard"),
-
-    path("password-reset/", auth_views.PasswordResetView.as_view(), name="password_reset"),
-    path("password-reset/done/", auth_views.PasswordResetDoneView.as_view(), name="password_reset_done"),
-    path("reset/<uidb64>/<token>/", auth_views.PasswordResetConfirmView.as_view(), name="password_reset_confirm"),
-    path("reset/done/", auth_views.PasswordResetCompleteView.as_view(), name="password_reset_complete"),
+    # Authentication
+    path("register/", views.register, name="register"),
+    path("login/", views.login_view, name="login"),
+    path("logout/", views.logout_view, name="logout"),
+    
+    # Password Reset (Django built-in views)
+    path("password-reset/", auth_views.PasswordResetView.as_view(
+        template_name="registration/password_reset_form.html"
+    ), name="password_reset"),
+    path("password-reset/done/", auth_views.PasswordResetDoneView.as_view(
+        template_name="registration/password_reset_done.html"
+    ), name="password_reset_done"),
+    path("password-reset-confirm/<uidb64>/<token>/", auth_views.PasswordResetConfirmView.as_view(
+        template_name="registration/password_reset_confirm.html"
+    ), name="password_reset_confirm"),
+    path("password-reset-complete/", auth_views.PasswordResetCompleteView.as_view(
+        template_name="registration/password_reset_complete.html"
+    ), name="password_reset_complete"),
+    
+    # Dashboard & Symptom Tracking
+    path("dashboard/", views.dashboard, name="dashboard"),
+    path("symptoms/", views.symptom_tracking_list, name="symptom_tracking_list"),
+    path("symptoms/create/", views.symptom_tracking_create, name="symptom_tracking_create"),
+    path("symptoms/<int:pk>/edit/", views.symptom_tracking_update, name="symptom_tracking_update"),
+    path("symptoms/<int:pk>/delete/", views.symptom_tracking_delete, name="symptom_tracking_delete"),
 ]
