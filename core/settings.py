@@ -120,7 +120,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LOGIN_URL = "login"
 LOGIN_REDIRECT_URL = "dashboard"
-
+LOGOUT_REDIRECT_URL = "login"
 
 SESSION_COOKIE_HTTPONLY = True
 CSRF_COOKIE_HTTPONLY = True
@@ -152,6 +152,5 @@ STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 
-# Use custom User model with role-based access for AutiBloom
-AUTH_USER_MODEL = 'accounts.User'
+
 
