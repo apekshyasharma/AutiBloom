@@ -34,16 +34,6 @@
 
     <!-- Add spacing between navbar and content -->
     <div style="margin-top: 2rem;">
-        {% if messages %}
-            <div class="messages" style="max-width: 1200px; margin: 0 auto 1rem; padding: 0 2rem;">
-                {% for message in messages %}
-                    <div class="alert alert-{{ message.tags }}" style="padding: 0.75rem; margin-bottom: 0.5rem; border-radius: 4px; background-color: #d4edda; color: #155724;">
-                        {{ message }}
-                    </div>
-                {% endfor %}
-            </div>
-        {% endif %}
-
         <main>
             {% block content %}{% endblock %}
         </main>
