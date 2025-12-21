@@ -39,10 +39,7 @@
                 </div>
 
                 <div class="form-group">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <label for="{{ form.password.id_for_label }}" class="form-label">Password</label>
-                        <a href="{% url 'password_reset' %}" class="small text-primary">Forgot password?</a>
-                    </div>
+                    <label for="{{ form.password.id_for_label }}" class="form-label">Password</label>
                     {{ form.password }}
                     {% if form.password.errors %}
                         <div class="invalid-feedback d-block">
@@ -59,6 +56,9 @@
             <div class="login-footer">
                 <p class="text-muted">Don't have an account? 
                     <a href="{% url 'register' %}" class="fw-bold text-primary">Create an account</a>
+                </p>
+                <p class="text-muted mt-2">
+                    <a href="{% url 'password_reset' %}" class="small text-primary">Forgot password?</a>
                 </p>
             </div>
         </div>
