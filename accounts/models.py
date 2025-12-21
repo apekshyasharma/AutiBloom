@@ -13,3 +13,21 @@ class Profile(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.role}"
+
+
+class SymptomTracking(models.Model):
+    """User-owned symptom tracking data"""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="symptom_tracks")
+    description = models.TextField()
+    severity = models.IntegerField(choices=[(i, i) for i in range(1, 11)])
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["user", "-created_at"]),
+        ]
+
+    def __str__(self):
+        return f"{self.user.username} - {self.created_at.date()}"
