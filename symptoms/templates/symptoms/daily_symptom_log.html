@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Daily Symptom Log{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/symptom_log.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container symptom-log-container">
+    <div class="header-section">
+        <h1>Daily Symptom Log</h1>
+        <p class="text-muted">Please record today's observations carefully.</p>
+    </div>
+
+    <div id="message-container"></div>
+
+    <form id="symptom-log-form" method="post">
+        {% csrf_token %}
+        
+        <!-- Section 1: Core Ratings -->
+        <div class="card form-section">
+            <div class="card-header">
+                <h3>1. Core Ratings (1-5)</h3>
+                <p class="small">1 = Low/None, 5 = High/Severe</p>
+            </div>
+            <div class="card-body">
+                <div class="rating-group">
+                    <label for="communication_rating">Communication</label>
+                    <input type="number" id="communication_rating" name="communication_rating" min="1" max="5" required class="form-control">
+                </div>
+                <div class="rating-group">
+                    <label for="social_interaction_rating">Social Interaction</label>
+                    <input type="number" id="social_interaction_rating" name="social_interaction_rating" min="1" max="5" required class="form-control">
+                </div>
+                <div class="rating-group">
+                    <label for="repetitive_behavior_rating">Repetitive Behavior</label>
+                    <input type="number" id="repetitive_behavior_rating" name="repetitive_behavior_rating" min="1" max="5" required class="form-control">
+                </div>
+                <div class="rating-group">
+                    <label for="sensory_sensitivity_rating">Sensory Sensitivity</label>
+                    <input type="number" id="sensory_sensitivity_rating" name="sensory_sensitivity_rating" min="1" max="5" required class="form-control">
+                </div>
+                <div class="rating-group">
+                    <label for="mood_rating">Overall Mood</label>
+                    <input type="number" id="mood_rating" name="mood_rating" min="1" max="5" required class="form-control">
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 2: Behaviors Checklist -->
+        <div class="card form-section">
+            <div class="card-header">
+                <h3>2. Specific Behaviors</h3>
+                <p class="small">Select all that apply today.</p>
+            </div>
+            <div class="card-body checklist-grid">
+                <label class="checkbox-label">
+                    <input type="checkbox" name="behavior" value="anxiety"> Anxiety
+                </label>
+                <label class="checkbox-label">
+                    <input type="checkbox" name="behavior" value="aggression"> Aggression
+                </label>
+                <label class="checkbox-label">
+                    <input type="checkbox" name="behavior" value="sleep_issues"> Sleep Issues
+                </label>
+                <label class="checkbox-label">
+                    <input type="checkbox" name="behavior" value="hyperactivity"> Hyperactivity
+                </label>
+                <label class="checkbox-label">
+                    <input type="checkbox" name="behavior" value="meltdown"> Meltdown
+                </label>
+                <label class="checkbox-label">
+                    <input type="checkbox" name="behavior" value="self_injury"> Self-injury
+                </label>
+            </div>
+        </div>
+
+        <!-- Section 3: Notes -->
+        <div class="card form-section">
+            <div class="card-header">
+                <h3>3. Additional Notes</h3>
+            </div>
+            <div class="card-body">
+                <label for="notes" class="sr-only">Notes</label>
+                <textarea id="notes" name="notes" rows="4" class="form-control" placeholder="Any specific triggers or observations..."></textarea>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary btn-lg">Save Log</button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/symptom_log.js' %}"></script>
+{% endblock %}
