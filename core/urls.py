@@ -17,11 +17,16 @@ Including another URLconf
 
 from django.contrib import admin
 from django.urls import include, path
+from django.views.generic import TemplateView # Import TemplateView
 from accounts.views import root_redirect
 
 urlpatterns = [
     path("", root_redirect, name="root"),
     path("admin/", admin.site.urls),
     path("accounts/", include("accounts.urls")),
+    path("symptoms/", include("symptoms.urls")),
+    
+    # Add the explicit dashboard route
+    path("core/caregiver-dashboard/", TemplateView.as_view(template_name="dashboard.html"), name="dashboard"),
 ]
 

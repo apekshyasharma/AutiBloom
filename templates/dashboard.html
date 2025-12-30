@@ -1,153 +1,45 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Caregiver Dashboard - AutiBloom{% endblock %}
+{% block title %}Caregiver Dashboard{% endblock %}
 
 {% block content %}
-<div class="container py-5">
-    <!-- Welcome Header -->
-    <div class="row mb-5 align-items-center">
-        <div class="col-md-8">
-            <h1 class="display-6 fw-bold text-dark mb-2">Welcome, {{ user.username }}</h1>
-            <p class="text-muted lead mb-0">Here is your weekly support overview.</p>
-        </div>
-        <div class="col-md-4 text-md-end mt-3 mt-md-0">
-            <a href="{% url 'symptom_tracking_create' %}" class="btn btn-primary btn-lg shadow-sm">
-                Add Weekly Check-In
-            </a>
-        </div>
-    </div>
-
-    <div class="row gy-5">
-        <!-- Latest Status Section -->
-        <div class="col-12">
-            <div class="card border-0 shadow-lg overflow-hidden h-100">
-                <div class="card-header bg-white border-bottom-0 pt-4 px-4">
-                    <h4 class="text-uppercase text-muted small fw-bold ls-1 mb-0">Current Status</h4>
-                </div>
-                <div class="card-body p-4">
-                    {% if latest_symptom %}
-                        <div class="d-flex flex-column flex-md-row align-items-md-center">
-                            <!-- Visual Indicator based on status -->
-                            <div class="me-md-4 mb-3 mb-md-0">
-                                {% if latest_symptom.severity <= 3 %}
-                                    <div class="rounded-circle bg-success bg-opacity-10 p-4 d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="currentColor" class="bi bi-emoji-smile text-success" viewBox="0 0 16 16">
-                                            <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
-                                            <path d="M4.285 9.567a.5.5 0 0 1 .683.183A3.498 3.498 0 0 0 8 11.5a3.498 3.498 0 0 0 3.032-1.75.5.5 0 1 1 .866.5A4.498 4.498 0 0 1 8 12.5a4.498 4.498 0 0 1-3.898-2.25.5.5 0 0 1 .183-.683zM7 6.5C7 7.328 6.552 8 6 8s-1-.672-1-1 .448-1 1-1 1 .672 1 1zm4 0c0 .828-.448 1-1 1s-1-.672-1-1 .448-1 1-1 1 .672 1 1z"/>
-                                        </svg>
-                                    </div>
-                                {% elif latest_symptom.severity <= 6 %}
-                                    <div class="rounded-circle bg-info bg-opacity-10 p-4 d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="currentColor" class="bi bi-emoji-neutral text-info" viewBox="0 0 16 16">
-                                            <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
-                                            <path d="M4 10.5a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5zm3-4C7 5.672 6.552 5 6 5s-1 .672-1 1 .448 1 1 1 1-.672 1-1zm4 0c0-.828-.448-1-1-1s-1 .672-1 1 .448 1 1 1 1 .672 1 1z"/>
-                                        </svg>
-                                    </div>
-                                {% else %}
-                                    <div class="rounded-circle bg-warning bg-opacity-10 p-4 d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="currentColor" class="bi bi-heart text-warning" viewBox="0 0 16 16">
-                                            <path d="m8 2.748-.717-.737C5.6.281 2.514.878 1.4 3.053c-.523 1.023-.641 2.5.314 4.385.92 1.815 2.834 3.989 6.286 6.357 3.452-2.368 5.365-4.542 6.286-6.357.955-1.886.838-3.362.314-4.385C13.486.878 10.4.28 8.717 2.01L8 2.748zM8 15C-7.333 4.868 3.279-3.04 7.824 1.143c.06.055.119.112.176.171a3.12 3.12 0 0 1 .176-.17C12.72-3.042 23.333 4.867 8 15z"/>
-                                        </svg>
-                                    </div>
-                                {% endif %}
-                            </div>
-                            
-                            <!-- Text Content -->
-                            <div>
-                                {% if latest_symptom.severity <= 3 %}
-                                    <h2 class="mb-2 text-success fw-bold">{{ support_status }}</h2>
-                                {% elif latest_symptom.severity <= 6 %}
-                                    <h2 class="mb-2 text-info fw-bold" style="color: var(--color-info) !important;">{{ support_status }}</h2>
-                                {% else %}
-                                    <h2 class="mb-2 text-warning fw-bold" style="color: #d97706 !important;">{{ support_status }}</h2>
-                                {% endif %}
-                                <p class="text-muted mb-0 fs-5">{{ support_explanation }}</p>
-                                <p class="text-muted small mt-2 mb-0">
-                                    Last updated: {{ latest_symptom.created_at|date:"F j, Y" }}
-                                </p>
-                            </div>
-                        </div>
-                    {% else %}
-                        <div class="text-center py-5">
-                            <div class="mb-3">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" fill="currentColor" class="bi bi-journal-medical text-muted opacity-25" viewBox="0 0 16 16">
-                                    <path fill-rule="evenodd" d="M8 4a.5.5 0 0 1 .5.5v.634l.549-.317a.5.5 0 1 1 .5.866L9 6l.549.317a.5.5 0 1 1-.5.866L8.5 6.866V7.5a.5.5 0 0 1-1 0v-.634l-.549.317a.5.5 0 1 1-.5-.866L7 6l-.549-.317a.5.5 0 0 1 .5-.866l.549.317V4.5A.5.5 0 0 1 8 4zM5 9.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5zm0 2a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5z"/>
-                                    <path d="M3 0h10a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2v-1h1v1a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v1H1V2a2 2 0 0 1 2-2z"/>
-                                    <path d="M1 5v-.5a.5.5 0 0 1 1 0V5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1H1zm0 3v-.5a.5.5 0 0 1 1 0V8h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1H1zm0 3v-.5a.5.5 0 0 1 1 0v.5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1H1z"/>
-                                </svg>
-                            </div>
-                            <h3 class="h4 text-dark fw-bold">Welcome to your dashboard!</h3>
-                            <p class="text-muted mb-4 col-md-8 mx-auto">Start by adding your first weekly check-in to get personalized support insights and track progress over time.</p>
-                            <a href="{% url 'symptom_tracking_create' %}" class="btn btn-primary px-4 py-2">
-                                Start Check-In
-                            </a>
-                        </div>
-                    {% endif %}
-                </div>
+<div class="container" style="max-width: 1000px; margin: 2rem auto; padding: 0 1rem;">
+    <header style="margin-bottom: 2rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 1rem;">
+        <h1 style="color: #2d3748; font-size: 2rem;">Caregiver Dashboard</h1>
+        <p style="color: #718096;">Welcome back, {{ user.username }}. Manage your caregiving tasks below.</p>
+    </header>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem;">
+        
+        <!-- Daily Symptom Log Card -->
+        <div class="dashboard-card" style="background: white; border: 1px solid #cbd5e0; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); overflow: hidden; transition: transform 0.2s;">
+            <div style="background-color: #e6fffa; padding: 1rem 1.5rem; border-bottom: 1px solid #cbd5e0;">
+                <h3 style="margin: 0; color: #2c7a7b; font-size: 1.25rem;">Daily Symptom Log</h3>
+            </div>
+            <div style="padding: 1.5rem;">
+                <p style="color: #4a5568; margin-bottom: 1.5rem; line-height: 1.5;">
+                    Record today's observations, behavioral ratings, and notes for your child.
+                </p>
+                <a href="{% url 'symptoms:log_symptoms' %}" 
+                   style="display: inline-block; background-color: #2c7a7b; color: white; padding: 0.75rem 1.5rem; text-decoration: none; border-radius: 4px; font-weight: 600; width: 100%; text-align: center;">
+                    Log Today's Symptoms
+                </a>
             </div>
         </div>
 
-        <!-- History Section -->
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-white border-bottom py-3 px-4">
-                    <h5 class="mb-0 fw-bold text-dark">History</h5>
-                </div>
-                <div class="card-body p-0">
-                    {% if symptoms %}
-                        <div class="table-responsive">
-                            <table class="table table-hover mb-0 align-middle">
-                                <thead class="bg-light">
-                                    <tr>
-                                        <th scope="col" class="ps-4 py-3 text-muted small text-uppercase border-0">Date</th>
-                                        <th scope="col" class="py-3 text-muted small text-uppercase border-0">Status</th>
-                                        <th scope="col" class="text-end pe-4 py-3 text-muted small text-uppercase border-0">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for symptom in symptoms %}
-                                        <tr>
-                                            <td class="ps-4 fw-medium text-dark">
-                                                {{ symptom.created_at|date:"M j, Y" }}
-                                            </td>
-                                            <td>
-                                                <!-- Logic mapped from views.py to ensure consistent friendly labels -->
-                                                {% if symptom.severity <= 3 %}
-                                                    <span class="badge bg-success bg-opacity-10 text-success px-3 py-2 rounded-pill fw-normal">
-                                                        Doing Well This Week
-                                                    </span>
-                                                {% elif symptom.severity <= 6 %}
-                                                    <span class="badge bg-info bg-opacity-10 text-info px-3 py-2 rounded-pill fw-normal">
-                                                        Needs a Little Extra Support
-                                                    </span>
-                                                {% else %}
-                                                    <span class="badge bg-warning bg-opacity-10 text-warning px-3 py-2 rounded-pill fw-normal" style="color: #92400e !important; background-color: #fef3c7 !important;">
-                                                        Support Recommended
-                                                    </span>
-                                                {% endif %}
-                                            </td>
-                                            <td class="text-end pe-4">
-                                                <div class="btn-group">
-                                                    <a href="{% url 'symptom_tracking_update' symptom.pk %}" class="btn btn-sm btn-light text-muted" title="Edit">
-                                                        Edit
-                                                    </a>
-                                                    <a href="{% url 'symptom_tracking_delete' symptom.pk %}" class="btn btn-sm btn-light text-muted" title="Delete">
-                                                        Delete
-                                                    </a>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    {% else %}
-                        <div class="text-center py-5">
-                            <p class="text-muted mb-0">No history available yet.</p>
-                        </div>
-                    {% endif %}
-                </div>
+        <!-- Placeholder: Progress Reports -->
+        <div class="dashboard-card" style="background: white; border: 1px solid #cbd5e0; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); overflow: hidden; opacity: 0.8;">
+            <div style="background-color: #f7fafc; padding: 1rem 1.5rem; border-bottom: 1px solid #cbd5e0;">
+                <h3 style="margin: 0; color: #4a5568; font-size: 1.25rem;">Progress Reports</h3>
+            </div>
+            <div style="padding: 1.5rem;">
+                <p style="color: #718096; margin-bottom: 1.5rem; line-height: 1.5;">
+                    View weekly trends and behavioral analysis charts.
+                </p>
+                <button disabled style="background-color: #cbd5e0; color: #4a5568; padding: 0.75rem 1.5rem; border: none; border-radius: 4px; font-weight: 600; width: 100%; cursor: not-allowed;">
+                    Coming Soon
+                </button>
             </div>
         </div>
     </div>
