@@ -1,0 +1,250 @@
+{% extends 'layouts/caregiver_base.html' %}
+
+{% block caregiver_extra_css %}
+<style>
+    .step-card { background: #fff; border-radius: 20px; padding: 2rem; margin-bottom: 1.5rem; box-shadow: 0 2px 12px rgba(0,0,0,0.04); border: 1px solid rgba(0,0,0,0.05); transition: box-shadow 0.2s; }
+    .step-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+    .step-num { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #6ee7b7, #34d399); color: #064e3b; font-weight: 800; font-size: 1rem; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .step-title { font-weight: 700; font-size: 1.1rem; color: #1e293b; }
+    .reason-card { cursor: pointer; border: 2px solid #e2e8f0; border-radius: 16px; padding: 1.25rem 1.5rem; transition: all 0.2s ease; background: #fff; }
+    .reason-card:hover { border-color: #94a3b8; background: #f8fafc; }
+    .reason-card.selected-casual { border-color: #34d399; background: linear-gradient(135deg, #ecfdf5, #d1fae5); }
+    .reason-card.selected-severe { border-color: #fb7185; background: linear-gradient(135deg, #fff1f2, #ffe4e6); }
+    .reason-card input[type="radio"] { display: none; }
+    .reason-icon { width: 48px; height: 48px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; flex-shrink: 0; }
+    .helper-text { font-size: 0.82rem; color: #94a3b8; line-height: 1.5; }
+    .info-tip { cursor: help; color: #94a3b8; transition: color 0.2s; }
+    .info-tip:hover { color: #6366f1; }
+    .report-box { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1.5px dashed #7dd3fc; border-radius: 16px; padding: 1.5rem; }
+</style>
+{% endblock %}
+
+{% block caregiver_topbar_title %}Request Support{% endblock %}
+
+{% block caregiver_content %}
+<div class="row justify-content-center">
+    <div class="col-lg-7 col-xl-6">
+        <!-- Header -->
+        <div class="d-flex align-items-center mb-2">
+            <a href="{% url 'caregiver_appointment_list' %}" class="btn btn-light rounded-circle shadow-sm me-3 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                <i class="bi bi-arrow-left"></i>
+            </a>
+            <div>
+                <h2 class="fw-bold mb-0" style="letter-spacing: -0.5px;">Book a Clinical Review</h2>
+                <p class="text-muted mb-0 mt-1" style="font-size: 0.9rem;">Share your child's reports with our verified clinicians for personalized guidance.</p>
+            </div>
+        </div>
+
+        {% if no_clinicians %}
+        <div class="step-card text-center py-5 mt-4">
+            <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3" style="width: 72px; height: 72px; background: #fef3c7;">
+                <i class="bi bi-exclamation-triangle fs-2 text-warning"></i>
+            </div>
+            <h4 class="fw-bold">No Clinicians Available</h4>
+            <p class="text-muted mb-4 px-4">There are currently no verified clinicians on the platform. Please contact administration.</p>
+            <a href="{% url 'dashboard' %}" class="btn btn-warning rounded-pill px-4">Return to Dashboard</a>
+        </div>
+        {% else %}
+        <form method="post" action="" enctype="multipart/form-data" novalidate>
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+            <div class="alert alert-danger rounded-4 border-0 shadow-sm mt-3">
+                {% for error in form.non_field_errors %}
+                <div>{{ error }}</div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- Step 1: Select Child -->
+            <div class="step-card mt-4">
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <span class="step-num">1</span>
+                    <span class="step-title">Select Child</span>
+                </div>
+                {{ form.child }}
+                {% if form.child.errors %}<div class="text-danger small mt-2"><i class="bi bi-exclamation-circle me-1"></i>{{ form.child.errors.0 }}</div>{% endif %}
+            </div>
+
+            <!-- Step 2: Reason Type -->
+            <div class="step-card">
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <span class="step-num">2</span>
+                    <span class="step-title">Why are you requesting this?</span>
+                </div>
+                <div class="row g-3 mb-3" id="reason-cards">
+                    <div class="col-6">
+                        <label class="reason-card d-flex align-items-center gap-3 mb-0 w-100 h-100" data-value="CASUAL">
+                            <input type="radio" name="reason_type" value="CASUAL" {% if form.reason_type.value == 'CASUAL' %}checked{% endif %}>
+                            <div class="reason-icon bg-success bg-opacity-10 text-success">
+                                <i class="bi bi-chat-heart"></i>
+                            </div>
+                            <div>
+                                <div class="fw-bold text-dark">Casual check-in</div>
+                                <div class="helper-text">Routine feedback and general guidance</div>
+                            </div>
+                        </label>
+                    </div>
+                    <div class="col-6">
+                        <label class="reason-card d-flex align-items-center gap-3 mb-0 w-100 h-100" data-value="SEVERE">
+                            <input type="radio" name="reason_type" value="SEVERE" {% if form.reason_type.value == 'SEVERE' %}checked{% endif %}>
+                            <div class="reason-icon bg-danger bg-opacity-10 text-danger">
+                                <i class="bi bi-shield-exclamation"></i>
+                            </div>
+                            <div>
+                                <div class="fw-bold text-dark">Urgent concern</div>
+                                <div class="helper-text">Immediate concern or noticed regression</div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+                {% if form.reason_type.errors %}<div class="text-danger small mb-3"><i class="bi bi-exclamation-circle me-1"></i>{{ form.reason_type.errors.0 }}</div>{% endif %}
+
+                <div>
+                    <label class="fw-semibold mb-2 d-flex align-items-center gap-2" style="font-size: 0.95rem;">
+                        Provide a brief description
+                        <i class="bi bi-info-circle info-tip" data-bs-toggle="tooltip" data-bs-placement="right" title="Help the clinician understand what you observe at home."></i>
+                    </label>
+                    {{ form.reason_text }}
+                    {% if form.reason_text.errors %}<div class="text-danger small mt-2"><i class="bi bi-exclamation-circle me-1"></i>{{ form.reason_text.errors.0 }}</div>{% endif %}
+                </div>
+            </div>
+
+            <!-- Step 3: Clinician -->
+            <div class="step-card">
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <span class="step-num">3</span>
+                    <span class="step-title">Choose Clinician</span>
+                </div>
+                <p class="helper-text mb-2"><i class="bi bi-stars text-warning me-1"></i> We've pre-selected your previous physician if available.</p>
+                {{ form.clinician }}
+                {% if form.clinician.errors %}<div class="text-danger small mt-2"><i class="bi bi-exclamation-circle me-1"></i>{{ form.clinician.errors.0 }}</div>{% endif %}
+            </div>
+
+            <!-- Step 4: Attach Reports -->
+            <div class="step-card">
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <span class="step-num">4</span>
+                    <span class="step-title">Attach Reports</span>
+                </div>
+                <p class="helper-text mb-3">
+                    Share at least one of the following with your clinician — a wellbeing (model-evaluation) report we already have on file, and/or external medical PDFs. You can attach multiple PDFs in one go.
+                </p>
+
+                <!-- Wellbeing entry (already on file) -->
+                <div class="mt-1 mb-4">
+                    <div class="d-flex align-items-start gap-3 mb-2">
+                        <div class="d-flex align-items-center justify-content-center rounded-3 flex-shrink-0" style="width: 40px; height: 40px; background: #e0f2fe;">
+                            <i class="bi bi-clipboard2-data text-primary"></i>
+                        </div>
+                        <div>
+                            <div class="fw-semibold text-dark" style="font-size: 0.92rem;">Wellbeing report (model evaluation)</div>
+                            <div class="helper-text">Choose one of your submitted weekly entries — the clinician will see the full ML-backed report.</div>
+                        </div>
+                    </div>
+                    {{ form.entry }}
+                </div>
+                {% if form.entry.errors %}<div class="text-danger small mt-2"><i class="bi bi-exclamation-circle me-1"></i>{{ form.entry.errors.0 }}</div>{% endif %}
+
+                <!-- External PDFs (multi-upload) -->
+                <div class="report-box">
+                    <div class="d-flex align-items-start gap-3 mb-3">
+                        <div class="d-flex align-items-center justify-content-center rounded-3 flex-shrink-0" style="width: 44px; height: 44px; background: #bae6fd;">
+                            <i class="bi bi-file-earmark-pdf-fill text-primary fs-5"></i>
+                        </div>
+                        <div>
+                            <div class="fw-semibold text-dark" style="font-size: 0.95rem;">Upload medical reports (PDF)</div>
+                            <div class="helper-text">Select one or more PDFs (max 10 MB each). The clinician unlocks access only after confirming your appointment.</div>
+                        </div>
+                    </div>
+                    <input type="file"
+                           name="medical_report_files"
+                           class="form-control rounded-3"
+                           accept="application/pdf"
+                           multiple
+                           id="medicalReportFilesInput">
+                    <div id="medicalReportFilesPreview" class="mt-2 small text-muted"></div>
+                </div>
+            </div>
+
+            <!-- Step 5: Scheduling -->
+            <div class="step-card">
+                <div class="d-flex align-items-center gap-3 mb-2">
+                    <span class="step-num">5</span>
+                    <span class="step-title">Schedule Appointment</span>
+                </div>
+                <p class="helper-text mb-3">
+                    <i class="bi bi-hospital text-primary me-1"></i>
+                    Hospital hours: <strong>Mon – Fri, 9:00 AM – 5:00 PM</strong>. Weekend appointments are not available.
+                </p>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="fw-semibold text-muted small mb-1">Preferred Date</label>
+                        {{ form.preferred_date }}
+                        {% if form.preferred_date.errors %}<div class="text-danger small mt-2"><i class="bi bi-exclamation-circle me-1"></i>{{ form.preferred_date.errors.0 }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="fw-semibold text-muted small mb-1">Preferred Time Slot</label>
+                        {{ form.preferred_time_window }}
+                        {% if form.preferred_time_window.errors %}<div class="text-danger small mt-2"><i class="bi bi-exclamation-circle me-1"></i>{{ form.preferred_time_window.errors.0 }}</div>{% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Submit -->
+            <button type="submit" class="btn w-100 rounded-pill fw-bold py-3 shadow mt-2 mb-5" style="background: linear-gradient(135deg, #34d399, #059669); color: #fff; font-size: 1.1rem; border: none;">
+                Submit Request <i class="bi bi-arrow-right ms-2"></i>
+            </button>
+        </form>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+// Highlight active reason card
+function updateReasonCards() {
+    document.querySelectorAll('#reason-cards .reason-card').forEach(function(c) {
+        c.classList.remove('selected-casual', 'selected-severe');
+        var radio = c.querySelector('input[type="radio"]');
+        if (radio && radio.checked) {
+            c.classList.add(radio.value === 'CASUAL' ? 'selected-casual' : 'selected-severe');
+        }
+    });
+}
+document.querySelectorAll('#reason-cards input[type="radio"]').forEach(function(r) {
+    r.addEventListener('change', updateReasonCards);
+});
+updateReasonCards();
+
+// Bootstrap tooltips
+var tt = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+tt.map(function(el) { return new bootstrap.Tooltip(el); });
+
+// Live preview of selected PDFs
+(function () {
+    var input = document.getElementById('medicalReportFilesInput');
+    var preview = document.getElementById('medicalReportFilesPreview');
+    if (!input || !preview) return;
+    function fmt(bytes) {
+        if (bytes < 1024) return bytes + ' B';
+        if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+        return (bytes / 1024 / 1024).toFixed(1) + ' MB';
+    }
+    input.addEventListener('change', function () {
+        if (!input.files || !input.files.length) { preview.innerHTML = ''; return; }
+        var items = [];
+        for (var i = 0; i < input.files.length; i++) {
+            var f = input.files[i];
+            items.push(
+                '<div class="d-flex align-items-center gap-2 mt-1">' +
+                '<i class="bi bi-file-earmark-pdf-fill text-danger"></i>' +
+                '<span class="text-dark">' + f.name + '</span>' +
+                '<span class="text-muted">· ' + fmt(f.size) + '</span>' +
+                '</div>'
+            );
+        }
+        preview.innerHTML = items.join('');
+    });
+})();
+</script>
+{% endblock %}

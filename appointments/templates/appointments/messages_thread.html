@@ -1,0 +1,114 @@
+{% extends 'accounts/base.html' %}
+
+{% block title %}Messages · {{ appointment.child.name }} · AutiBloom{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+    .msg-shell { background: #fff; border-radius: 20px; border: 1px solid rgba(0,0,0,0.05); box-shadow: 0 2px 12px rgba(0,0,0,0.04); overflow: hidden; display: flex; flex-direction: column; height: calc(100vh - 220px); min-height: 520px; }
+    .msg-header { background: linear-gradient(135deg, #ecfdf5, #f0fdf4); padding: 1.1rem 1.4rem; border-bottom: 1px solid rgba(5,150,105,0.12); }
+    .msg-scroll { flex: 1; overflow-y: auto; padding: 1.4rem; background: #fafbfc; display: flex; flex-direction: column; gap: 0.9rem; }
+    .msg-row { display: flex; }
+    .msg-row.mine { justify-content: flex-end; }
+    .msg-row.theirs { justify-content: flex-start; }
+    .msg-bubble { max-width: 75%; border-radius: 18px; padding: 0.75rem 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+    .mine .msg-bubble { background: linear-gradient(135deg, #34d399, #059669); color: #fff; border-bottom-right-radius: 4px; }
+    .theirs .msg-bubble { background: #fff; color: #334155; border: 1px solid #e2e8f0; border-bottom-left-radius: 4px; }
+    .msg-sender { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.2px; opacity: 0.85; margin-bottom: 0.15rem; display: flex; align-items: center; gap: 0.3rem; }
+    .msg-body { font-size: 0.93rem; line-height: 1.5; white-space: pre-wrap; word-wrap: break-word; }
+    .msg-time { font-size: 0.65rem; opacity: 0.55; margin-top: 0.2rem; text-align: right; }
+    .msg-composer { border-top: 1px solid #eef2f6; padding: 0.9rem 1.1rem; background: #fff; }
+    .role-chip { font-size: 0.58rem; padding: 1px 6px; border-radius: 8px; }
+    .role-chip.clinician { background: rgba(14,165,233,0.12); color: #0369a1; }
+    .role-chip.caregiver { background: rgba(16,185,129,0.12); color: #047857; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center mb-4">
+    <a href="{% if user.role == 'CLINICIAN' %}{% url 'clinician_appointment_detail' appointment.id %}{% else %}{% url 'caregiver_appointment_detail' appointment.id %}{% endif %}"
+       class="btn btn-light rounded-circle shadow-sm me-3 d-flex align-items-center justify-content-center" style="width: 42px; height: 42px;">
+        <i class="bi bi-arrow-left"></i>
+    </a>
+    <div class="flex-grow-1">
+        <h2 class="fw-bold mb-0" style="letter-spacing: -0.5px;">Messages</h2>
+        <p class="text-muted mb-0 mt-1" style="font-size: 0.88rem;">
+            Consultation for <span class="fw-semibold text-dark">{{ appointment.child.name }}</span>
+            {% if user.role == 'CAREGIVER' %} · with Dr. {{ appointment.clinician.get_full_name|default:appointment.clinician.username }}
+            {% else %} · caregiver {{ appointment.caregiver.get_full_name|default:appointment.caregiver.username }}{% endif %}
+        </p>
+    </div>
+    <span class="badge rounded-pill px-3 py-2 fw-semibold shadow-sm
+        {% if appointment.status == 'REQUESTED' %}bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25
+        {% elif appointment.status == 'CONFIRMED' %}bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25
+        {% elif appointment.status == 'COMPLETED' %}bg-success bg-opacity-10 text-success border border-success border-opacity-25
+        {% else %}bg-secondary bg-opacity-10 text-secondary{% endif %}" style="font-size: 0.8rem;">
+        {{ appointment.get_status_display }}
+    </span>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-xl-9 col-lg-10">
+        <div class="msg-shell">
+            <div class="msg-header d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="d-flex align-items-center justify-content-center rounded-circle" style="width: 44px; height: 44px; background: linear-gradient(135deg, #34d399, #059669); color: #fff; font-weight: 800;">
+                        {{ appointment.child.name|make_list|first|upper }}
+                    </div>
+                    <div>
+                        <div class="fw-bold text-dark" style="font-size: 1rem;">{{ appointment.child.name }}</div>
+                        <div class="text-muted" style="font-size: 0.78rem;">
+                            <i class="bi bi-shield-lock me-1"></i>Private thread between caregiver and assigned clinician
+                        </div>
+                    </div>
+                </div>
+                <span class="badge bg-white border text-muted" style="font-size: 0.72rem;">{{ messages_list|length }} message{{ messages_list|length|pluralize }}</span>
+            </div>
+
+            <div class="msg-scroll" id="msgScroll">
+                {% for msg in messages_list %}
+                <div class="msg-row {% if msg.sender == user %}mine{% else %}theirs{% endif %}">
+                    <div class="msg-bubble">
+                        <div class="msg-sender">
+                            {{ msg.sender.get_full_name|default:msg.sender.username }}
+                            {% if msg.sender.role == 'CLINICIAN' %}
+                                <span class="role-chip clinician">Clinician</span>
+                            {% else %}
+                                <span class="role-chip caregiver">Caregiver</span>
+                            {% endif %}
+                        </div>
+                        <div class="msg-body">{{ msg.body }}</div>
+                        <div class="msg-time">{{ msg.created_at|date:"M j · h:i A" }}</div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-center text-muted small py-5 m-auto">
+                    <i class="bi bi-chat-square d-block" style="font-size: 2.25rem; opacity: 0.25;"></i>
+                    <div class="mt-2">No messages yet. Start the conversation.</div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="msg-composer">
+                <form method="post" action="{% url 'appointment_messages_page' appointment.id %}">
+                    {% csrf_token %}
+                    <div class="d-flex gap-2">
+                        <input type="text" name="body" class="form-control rounded-pill px-4 border shadow-sm" placeholder="Type a message..." autocomplete="off" required style="font-size: 0.93rem;">
+                        <button type="submit" class="btn rounded-pill px-4 fw-bold shadow-sm flex-shrink-0" style="background: linear-gradient(135deg, #34d399, #059669); color: #fff; border: none;">
+                            <i class="bi bi-send-fill"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+(function () {
+    // Auto-scroll to latest message on load.
+    var el = document.getElementById('msgScroll');
+    if (el) el.scrollTop = el.scrollHeight;
+})();
+</script>
+{% endblock %}

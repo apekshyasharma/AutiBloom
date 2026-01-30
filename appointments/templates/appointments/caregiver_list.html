@@ -1,0 +1,74 @@
+{% extends 'layouts/caregiver_base.html' %}
+
+{% block caregiver_extra_css %}
+<style>
+    .appt-card { border-radius: 20px; border: 1px solid rgba(0,0,0,0.05); transition: all 0.25s ease; overflow: hidden; }
+    .appt-card:hover { transform: translateY(-3px); box-shadow: 0 12px 32px rgba(0,0,0,0.08); }
+    .status-badge { font-size: 0.78rem; font-weight: 600; letter-spacing: 0.3px; }
+    .empty-state-icon { width: 96px; height: 96px; border-radius: 50%; background: linear-gradient(135deg, #d1fae5, #a7f3d0); }
+</style>
+{% endblock %}
+
+{% block caregiver_topbar_title %}My Appointments{% endblock %}
+
+{% block caregiver_content %}
+<div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between mb-4">
+    <div>
+        <h2 class="fw-bold mb-1" style="letter-spacing: -0.5px;">Clinical Support</h2>
+        <p class="text-muted mb-0">Review upcoming consultations and request assistance from verified clinicians.</p>
+    </div>
+    <a href="{% url 'caregiver_request_appointment' %}" class="btn rounded-pill px-4 py-2 shadow-sm fw-bold mt-3 mt-md-0" style="background: linear-gradient(135deg, #34d399, #059669); color: #fff; border: none;">
+        <i class="bi bi-plus-lg me-2"></i> New Request
+    </a>
+</div>
+
+{% if appointments %}
+<div class="row g-4">
+    {% for appt in appointments %}
+    <div class="col-md-6 col-xl-4">
+        <div class="card appt-card h-100 border-0 shadow-sm">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <span class="badge rounded-pill px-3 py-2 status-badge
+                        {% if appt.status == 'REQUESTED' %}bg-warning bg-opacity-10 text-warning
+                        {% elif appt.status == 'CONFIRMED' %}bg-success bg-opacity-10 text-success
+                        {% elif appt.status == 'COMPLETED' %}bg-primary bg-opacity-10 text-primary
+                        {% else %}bg-secondary bg-opacity-10 text-secondary{% endif %}">
+                        <i class="bi {% if appt.status == 'REQUESTED' %}bi-clock{% elif appt.status == 'CONFIRMED' %}bi-check-circle{% elif appt.status == 'COMPLETED' %}bi-patch-check{% else %}bi-dash-circle{% endif %} me-1"></i>
+                        {{ appt.get_status_display }}
+                    </span>
+                    <small class="text-muted" style="font-size: 0.78rem;">{{ appt.created_at|date:"M j, Y" }}</small>
+                </div>
+
+                <h5 class="fw-bold text-dark mb-1">{{ appt.child.name }}</h5>
+                <p class="text-muted mb-3" style="font-size: 0.85rem;">
+                    <i class="bi bi-person-badge me-1"></i> {{ appt.clinician.get_full_name|default:appt.clinician.username }}
+                </p>
+
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    <span class="badge rounded-pill px-2 py-1 {% if appt.reason_type == 'SEVERE' %}bg-danger bg-opacity-10 text-danger{% else %}bg-info bg-opacity-10 text-info{% endif %}" style="font-size: 0.75rem;">
+                        {{ appt.get_reason_type_display }}
+                    </span>
+                </div>
+
+                <a href="{% url 'caregiver_appointment_detail' appt.id %}" class="btn btn-light w-100 rounded-pill fw-semibold border" style="font-size: 0.9rem;">
+                    View Details
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="text-center py-5 mt-4">
+    <div class="empty-state-icon d-inline-flex align-items-center justify-content-center mb-4 text-success">
+        <i class="bi bi-calendar-heart fs-1"></i>
+    </div>
+    <h3 class="fw-bold text-dark">No Appointments Yet</h3>
+    <p class="text-muted mx-auto mb-4" style="max-width: 420px;">Request a formal review of your child's weekly reports from our verified clinical team.</p>
+    <a href="{% url 'caregiver_request_appointment' %}" class="btn rounded-pill px-4 py-2 shadow-sm fw-bold" style="background: linear-gradient(135deg, #34d399, #059669); color: #fff; border: none;">
+        Request Your First Review
+    </a>
+</div>
+{% endif %}
+{% endblock %}

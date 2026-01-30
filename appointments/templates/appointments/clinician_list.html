@@ -1,0 +1,103 @@
+{% extends 'accounts/base.html' %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+    .queue-card { border-radius: 20px; border: 1px solid rgba(0,0,0,0.05); overflow: hidden; }
+    .queue-row { transition: background 0.15s; }
+    .queue-row:hover { background: #f8fafc !important; }
+    .patient-avatar { width: 42px; height: 42px; border-radius: 12px; font-weight: 800; font-size: 1rem; display: flex; align-items: center; justify-content: center; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between mb-4">
+    <div>
+        <h1 class="fw-bold mb-1" style="letter-spacing: -0.5px;">Assigned Cases</h1>
+        <p class="text-muted mb-0">Review pending requests and manage clinical support plans.</p>
+    </div>
+    <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-4 py-2 fw-semibold mt-3 mt-md-0" style="font-size: 0.85rem;">
+        <i class="bi bi-patch-check-fill me-1"></i>Verified Physician
+    </span>
+</div>
+
+<div class="card queue-card border-0 shadow-sm">
+    <div class="table-responsive">
+        <table class="table align-middle mb-0">
+            <thead>
+                <tr style="background: #f8fafc;">
+                    <th class="ps-4 py-3 border-0 text-muted fw-semibold" style="font-size: 0.75rem; letter-spacing: 0.5px;">PATIENT</th>
+                    <th class="py-3 border-0 text-muted fw-semibold" style="font-size: 0.75rem; letter-spacing: 0.5px;">REASON</th>
+                    <th class="py-3 border-0 text-muted fw-semibold" style="font-size: 0.75rem; letter-spacing: 0.5px;">REQUESTED</th>
+                    <th class="py-3 border-0 text-muted fw-semibold" style="font-size: 0.75rem; letter-spacing: 0.5px;">STATUS</th>
+                    <th class="pe-4 py-3 border-0 text-end text-muted fw-semibold" style="font-size: 0.75rem; letter-spacing: 0.5px;">ACTION</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for appt in appointments %}
+                <tr class="queue-row border-bottom">
+                    <td class="ps-4 py-3">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="patient-avatar bg-primary bg-opacity-10 text-primary">
+                                {{ appt.child.name|make_list|first|upper }}
+                            </div>
+                            <div>
+                                <div class="fw-bold text-dark">{{ appt.child.name }}</div>
+                                <div class="text-muted" style="font-size: 0.8rem;">Parent: {{ appt.caregiver.get_full_name|default:appt.caregiver.username }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="py-3">
+                        <span class="badge rounded-pill px-2 py-1 {% if appt.reason_type == 'SEVERE' %}bg-danger bg-opacity-10 text-danger{% else %}bg-info bg-opacity-10 text-info{% endif %}" style="font-size: 0.75rem;">{{ appt.get_reason_type_display }}</span>
+                        <div class="text-muted text-truncate mt-1" style="max-width: 220px; font-size: 0.8rem;">{{ appt.reason_text }}</div>
+                    </td>
+                    <td class="py-3">
+                        <div class="fw-medium text-dark" style="font-size: 0.88rem;">{{ appt.created_at|date:"M j, Y" }}</div>
+                        <div class="text-muted" style="font-size: 0.78rem;">Prefers {{ appt.get_preferred_time_window_display|lower }}</div>
+                    </td>
+                    <td class="py-3">
+                        <span class="badge rounded-pill px-3 py-1
+                            {% if appt.status == 'REQUESTED' %}bg-warning bg-opacity-10 text-warning
+                            {% elif appt.status == 'CONFIRMED' %}bg-primary bg-opacity-10 text-primary
+                            {% elif appt.status == 'COMPLETED' %}bg-success bg-opacity-10 text-success
+                            {% else %}bg-secondary bg-opacity-10 text-secondary{% endif %}" style="font-size: 0.78rem;">
+                            {{ appt.get_status_display }}
+                        </span>
+                    </td>
+                    <td class="pe-4 py-3 text-end">
+                        <div class="d-inline-flex gap-2 align-items-center justify-content-end flex-wrap">
+                            {% if appt.status == 'REQUESTED' %}
+                                <form method="post" action="{% url 'clinician_confirm_appointment' appt.id %}" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-primary rounded-pill px-3 fw-semibold shadow-sm" style="font-size: 0.82rem;">
+                                        <i class="bi bi-check2-circle me-1"></i>Confirm
+                                    </button>
+                                </form>
+                            {% elif appt.status == 'CONFIRMED' %}
+                                <a href="{% url 'clinician_write_review' appt.id %}" class="btn btn-sm rounded-pill px-3 fw-bold shadow-sm" style="background: linear-gradient(135deg, #34d399, #059669); color: #fff; border: none; font-size: 0.82rem;">
+                                    <i class="bi bi-clipboard2-pulse me-1"></i>Complete
+                                </a>
+                            {% endif %}
+                            <a href="{% url 'clinician_write_review' appt.id %}" class="btn btn-sm btn-light rounded-pill px-3 fw-semibold border shadow-sm" style="font-size: 0.82rem;">
+                                Open <i class="bi bi-arrow-right ms-1"></i>
+                            </a>
+                            <a href="{% url 'appointment_messages_page' appt.id %}" class="btn btn-sm btn-light rounded-circle border shadow-sm d-inline-flex align-items-center justify-content-center" style="width: 32px; height: 32px;" title="Open message thread">
+                                <i class="bi bi-chat-dots"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center py-5">
+                        <i class="bi bi-inbox fs-1 text-muted opacity-25 mb-3 d-block"></i>
+                        <h5 class="fw-bold text-dark">No assigned cases</h5>
+                        <p class="text-muted mb-0">You don't have any consultation requests right now.</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

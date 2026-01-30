@@ -1,0 +1,297 @@
+{% extends 'layouts/caregiver_base.html' %}
+
+{% block caregiver_extra_css %}
+<style>
+    .detail-card { background: #fff; border-radius: 20px; border: 1px solid rgba(0,0,0,0.05); box-shadow: 0 2px 12px rgba(0,0,0,0.04); }
+    .detail-label { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #94a3b8; margin-bottom: 4px; }
+    .score-box { border-radius: 14px; padding: 0.75rem 0.5rem; text-align: center; min-width: 0; }
+    .score-val { font-weight: 800; font-size: 1.5rem; line-height: 1.2; }
+    .locked-box { background: #f8fafc; border: 1.5px dashed #cbd5e1; border-radius: 16px; }
+    .plan-card { border-radius: 20px; border: 2px solid #059669; background: linear-gradient(135deg, #ecfdf5, #f0fdf4); }
+
+    /* Fixed timeline — uses a CSS grid row (dot | content) with a flex column for the vertical line.
+       Avoids the earlier absolute-positioning overlap where dots overlapped the text. */
+    .timeline { display: flex; flex-direction: column; gap: 0; }
+    .tl-item { display: grid; grid-template-columns: 28px 1fr; column-gap: 0.9rem; align-items: start; padding-bottom: 1.25rem; position: relative; }
+    .tl-item:last-child { padding-bottom: 0; }
+    .tl-item:not(:last-child) .tl-rail { position: absolute; top: 22px; left: 13px; bottom: 0; width: 2px; background: #e2e8f0; }
+    .tl-dot { width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; margin-top: 0px; z-index: 1; }
+    .tl-body .tl-title { font-weight: 600; font-size: 0.92rem; color: #1e293b; line-height: 1.3; }
+    .tl-body .tl-sub { color: #64748b; font-size: 0.8rem; margin-top: 2px; line-height: 1.4; }
+    .tl-item.pending .tl-body .tl-title { color: #94a3b8; font-weight: 500; }
+
+    .report-row { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 0.7rem 0.9rem; display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; margin-bottom: 0.5rem; }
+    .report-row:last-child { margin-bottom: 0; }
+</style>
+{% endblock %}
+
+{% block caregiver_topbar_title %}Appointment Details{% endblock %}
+
+{% block caregiver_content %}
+<div class="row justify-content-center">
+    <div class="col-lg-10 col-xl-9">
+        <!-- Header -->
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-2">
+            <div class="d-flex align-items-center">
+                <a href="{% url 'caregiver_appointment_list' %}" class="btn btn-light rounded-circle shadow-sm me-3 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                    <i class="bi bi-arrow-left"></i>
+                </a>
+                <div>
+                    <h2 class="fw-bold mb-0" style="letter-spacing: -0.5px;">{{ appointment.child.name }}</h2>
+                    <p class="text-muted mb-0 mt-1" style="font-size: 0.88rem;">
+                        with Dr. {{ appointment.clinician.get_full_name|default:appointment.clinician.username }}
+                    </p>
+                </div>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <a href="{% url 'appointment_messages_page' appointment.id %}" class="btn btn-light rounded-pill fw-semibold shadow-sm border d-flex align-items-center gap-2" style="font-size: 0.85rem;">
+                    <i class="bi bi-chat-dots-fill text-primary"></i> Messages
+                    {% if appointment.messages.count %}<span class="badge bg-primary text-white rounded-pill" style="font-size: 0.65rem;">{{ appointment.messages.count }}</span>{% endif %}
+                </a>
+                <span class="badge rounded-pill px-4 py-2 shadow-sm fw-semibold
+                    {% if appointment.status == 'REQUESTED' %}bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25
+                    {% elif appointment.status == 'CONFIRMED' %}bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25
+                    {% elif appointment.status == 'COMPLETED' %}bg-success bg-opacity-10 text-success border border-success border-opacity-25
+                    {% else %}bg-secondary bg-opacity-10 text-secondary{% endif %}" style="font-size: 0.85rem;">
+                    <i class="bi {% if appointment.status == 'REQUESTED' %}bi-clock{% elif appointment.status == 'CONFIRMED' %}bi-check-circle{% elif appointment.status == 'COMPLETED' %}bi-patch-check{% else %}bi-dash{% endif %} me-1"></i>
+                    {{ appointment.get_status_display }}
+                </span>
+            </div>
+        </div>
+
+        {% if messages %}
+        <div class="mb-3">
+            {% for message in messages %}{% if 'dialog' not in message.tags %}
+            <div class="alert {% if 'success' in message.tags %}alert-success{% elif 'error' in message.tags %}alert-danger{% elif 'warning' in message.tags %}alert-warning{% else %}alert-info{% endif %} alert-dismissible fade show rounded-4 border-0 shadow-sm" role="alert">
+                <i class="bi {% if 'success' in message.tags %}bi-check-circle-fill{% elif 'error' in message.tags %}bi-exclamation-triangle-fill{% else %}bi-info-circle-fill{% endif %} me-2"></i>
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endif %}{% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Status Timeline -->
+        <div class="detail-card p-4 mb-4">
+            <h6 class="fw-bold mb-3 text-dark"><i class="bi bi-signpost-split text-primary me-2"></i>Appointment Progress</h6>
+            <div class="timeline">
+                <!-- 1. Request submitted -->
+                <div class="tl-item">
+                    <div class="tl-rail"></div>
+                    <div class="tl-dot bg-success text-white"><i class="bi bi-check-lg"></i></div>
+                    <div class="tl-body">
+                        <div class="tl-title">Request Submitted</div>
+                        <div class="tl-sub">{{ appointment.created_at|date:"M j, Y · h:i A" }}</div>
+                    </div>
+                </div>
+
+                <!-- 2. Clinician confirmed -->
+                <div class="tl-item {% if appointment.status == 'REQUESTED' %}pending{% endif %}">
+                    <div class="tl-rail"></div>
+                    <div class="tl-dot {% if appointment.status == 'CONFIRMED' or appointment.status == 'COMPLETED' %}bg-success text-white{% else %}bg-light border text-muted{% endif %}">
+                        {% if appointment.status == 'CONFIRMED' or appointment.status == 'COMPLETED' %}<i class="bi bi-check-lg"></i>{% else %}<i class="bi bi-circle"></i>{% endif %}
+                    </div>
+                    <div class="tl-body">
+                        <div class="tl-title">Clinician Confirmed</div>
+                        <div class="tl-sub">
+                            {% if appointment.status == 'CONFIRMED' or appointment.status == 'COMPLETED' %}
+                                Accepted by Dr. {{ appointment.clinician.get_full_name|default:appointment.clinician.username }}
+                            {% else %}
+                                Waiting for the clinician to review your request
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. Completed -->
+                <div class="tl-item {% if appointment.status != 'COMPLETED' %}pending{% endif %}">
+                    <div class="tl-dot {% if appointment.status == 'COMPLETED' %}bg-success text-white{% else %}bg-light border text-muted{% endif %}">
+                        {% if appointment.status == 'COMPLETED' %}<i class="bi bi-check-lg"></i>{% else %}<i class="bi bi-circle"></i>{% endif %}
+                    </div>
+                    <div class="tl-body">
+                        <div class="tl-title">Review Completed &amp; Support Plan Issued</div>
+                        <div class="tl-sub">
+                            {% if appointment.status == 'COMPLETED' %}
+                                Your personalised support plan is available below
+                            {% else %}
+                                Will be available once the clinician completes their assessment
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <!-- Left Column -->
+            <div class="col-lg-7">
+                <!-- Request Info -->
+                <div class="detail-card p-4 mb-4">
+                    <h6 class="fw-bold mb-3 text-dark"><i class="bi bi-clipboard-data text-primary me-2"></i>Request Summary</h6>
+                    <div class="row g-4">
+                        <div class="col-6">
+                            <div class="detail-label">Clinician</div>
+                            <div class="fw-semibold text-dark">Dr. {{ appointment.clinician.get_full_name|default:appointment.clinician.username }}</div>
+                        </div>
+                        <div class="col-6">
+                            <div class="detail-label">Type</div>
+                            <span class="badge rounded-pill px-3 py-1 {% if appointment.reason_type == 'SEVERE' %}bg-danger bg-opacity-10 text-danger{% else %}bg-success bg-opacity-10 text-success{% endif %}">{{ appointment.get_reason_type_display }}</span>
+                        </div>
+                        {% if appointment.preferred_date %}
+                        <div class="col-6">
+                            <div class="detail-label">Preferred Date</div>
+                            <div class="fw-semibold text-dark">{{ appointment.preferred_date|date:"M j, Y" }}</div>
+                        </div>
+                        <div class="col-6">
+                            <div class="detail-label">Preferred Time</div>
+                            <div class="fw-semibold text-dark">{{ appointment.get_preferred_time_window_display }}</div>
+                        </div>
+                        {% endif %}
+                        <div class="col-12">
+                            <div class="detail-label">Your Notes</div>
+                            <div class="text-secondary" style="font-size: 0.9rem; line-height: 1.6;">{{ appointment.reason_text }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Unified Attached Reports (PDFs + wellbeing entry) -->
+                {% with report_count=appointment.medical_reports.count %}
+                <div class="detail-card p-4 border-start border-4 border-primary">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="fw-bold mb-0 text-dark"><i class="bi bi-folder-fill text-primary me-2"></i>Attached Reports</h6>
+                        {% if appointment.entry %}
+                        <span class="badge bg-primary bg-opacity-10 text-primary" style="font-size: 0.72rem;">
+                            {{ report_count|add:"1" }} item{{ report_count|add:"1"|pluralize }}
+                        </span>
+                        {% else %}
+                        <span class="badge bg-primary bg-opacity-10 text-primary" style="font-size: 0.72rem;">
+                            {{ report_count }} item{{ report_count|pluralize }}
+                        </span>
+                        {% endif %}
+                    </div>
+
+                    {% if appointment.entry %}
+                    <div class="report-row">
+                        <div class="d-flex align-items-center gap-3 min-width-0">
+                            <i class="bi bi-clipboard2-data-fill text-success fs-4 flex-shrink-0"></i>
+                            <div class="min-width-0">
+                                <div class="fw-semibold text-dark text-truncate" style="font-size: 0.9rem;">
+                                    Wellbeing report (model evaluation)
+                                </div>
+                                <div class="text-muted" style="font-size: 0.75rem;">
+                                    Week of {{ appointment.entry.week_start|date:"M j" }} – {{ appointment.entry.week_end|date:"M j" }}
+                                    · Overall {{ appointment.entry.overall_score|floatformat:1|default:"--" }}/4
+                                </div>
+                            </div>
+                        </div>
+                        <a href="{% url 'wellbeing_entry_export_pdf' appointment.entry.id %}" target="_blank" rel="noopener"
+                           class="btn btn-sm btn-outline-success rounded-pill d-flex align-items-center gap-1 shadow-sm flex-shrink-0"
+                           style="font-size: 0.75rem; padding: 4px 12px;">
+                            <i class="bi bi-eye-fill"></i> View PDF
+                        </a>
+                    </div>
+                    {% endif %}
+
+                    {% for report in appointment.medical_reports.all %}
+                    <div class="report-row">
+                        <div class="d-flex align-items-center gap-3 min-width-0">
+                            <i class="bi bi-file-earmark-pdf-fill text-danger fs-4 flex-shrink-0"></i>
+                            <div class="min-width-0">
+                                <div class="fw-semibold text-dark text-truncate" style="font-size: 0.9rem;">{{ report.original_filename }}</div>
+                                <div class="text-muted" style="font-size: 0.75rem;">
+                                    Uploaded {{ report.uploaded_at|date:"M j, Y · h:i A" }} · {{ report.size_bytes|filesizeformat }}
+                                </div>
+                            </div>
+                        </div>
+                        <a href="{% url 'appointment_report_download' appointment.id report.id %}" target="_blank" rel="noopener"
+                           class="btn btn-sm btn-outline-primary rounded-pill d-flex align-items-center gap-1 shadow-sm flex-shrink-0"
+                           style="font-size: 0.75rem; padding: 4px 12px;">
+                            <i class="bi bi-eye-fill"></i> View PDF
+                        </a>
+                    </div>
+                    {% endfor %}
+
+                    {% if report_count == 0 and not appointment.entry %}
+                    <div class="text-center py-3 text-muted small">
+                        <i class="bi bi-folder-x d-block fs-4 opacity-25 mb-1"></i>
+                        No reports attached to this request.
+                    </div>
+                    {% endif %}
+                </div>
+                {% endwith %}
+            </div>
+
+            <!-- Right Column: Support Plan -->
+            <div class="col-lg-5">
+                {% if appointment.status == 'COMPLETED' and appointment.support_plan %}
+                <div class="plan-card p-4 h-100 d-flex flex-column">
+                    <div class="d-flex align-items-center gap-2 mb-3 pb-3 border-bottom border-success border-opacity-25">
+                        <i class="bi bi-file-earmark-medical-fill text-success fs-5"></i>
+                        <h6 class="fw-bold mb-0 text-success">Support Plan</h6>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="detail-label">Plan Title</div>
+                        <div class="fw-bold text-dark" style="font-size: 1.05rem;">{{ appointment.support_plan.title|default:"Support Plan" }}</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="detail-label">Issued By</div>
+                        <div class="d-flex align-items-center gap-2 mt-1">
+                            <div class="d-flex align-items-center justify-content-center rounded-circle bg-primary bg-opacity-10 text-primary" style="width: 32px; height: 32px; font-size: 0.8rem; font-weight: 800;">
+                                {{ appointment.clinician.get_full_name|make_list|first|upper }}
+                            </div>
+                            <div>
+                                <div class="fw-semibold text-dark" style="font-size: 0.88rem;">Dr. {{ appointment.clinician.get_full_name|default:appointment.clinician.username }}</div>
+                                <div class="text-muted" style="font-size: 0.72rem;">Licensed Clinician · {{ appointment.support_plan.updated_at|date:"M j, Y" }}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="detail-label">Recommendations</div>
+                        <div class="bg-white p-3 rounded-3 border mt-1" style="font-size: 0.9rem; line-height: 1.7;">
+                            {{ appointment.support_plan.recommendations|linebreaksbr }}
+                        </div>
+                    </div>
+
+                    <div class="p-3 rounded-3 mt-auto" style="background: rgba(5,150,105,0.06);">
+                        <div class="detail-label">Follow-Up</div>
+                        {% if appointment.support_plan.follow_up_required %}
+                        <span class="text-warning fw-semibold" style="font-size: 0.88rem;">
+                            <i class="bi bi-calendar-event me-1"></i>
+                            Scheduled{% if appointment.support_plan.follow_up_date %} — {{ appointment.support_plan.follow_up_date|date:"M j, Y" }}{% endif %}
+                        </span>
+                        {% else %}
+                        <span class="text-success fw-semibold" style="font-size: 0.88rem;"><i class="bi bi-check-circle me-1"></i> No follow-up required at this time</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                {% elif appointment.status == 'CONFIRMED' %}
+                <div class="detail-card p-4 h-100 d-flex flex-column">
+                    <h6 class="fw-bold mb-3 pb-3 border-bottom"><i class="bi bi-file-medical-fill text-primary me-2"></i>Support Plan</h6>
+                    <div class="text-center py-4 px-3 mt-auto mb-auto">
+                        <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3" style="width: 64px; height: 64px; background: #dbeafe;">
+                            <i class="bi bi-hourglass-split text-primary fs-3"></i>
+                        </div>
+                        <h6 class="fw-bold text-dark">Review in Progress</h6>
+                        <p class="small text-muted mb-0 mt-1">Dr. {{ appointment.clinician.get_full_name|default:appointment.clinician.username }} has confirmed your appointment and is preparing a personalised support plan.</p>
+                    </div>
+                </div>
+
+                {% else %}
+                <div class="detail-card p-4 h-100 d-flex flex-column">
+                    <h6 class="fw-bold mb-3 pb-3 border-bottom"><i class="bi bi-file-medical-fill text-primary me-2"></i>Support Plan</h6>
+                    <div class="locked-box text-center py-5 px-4 mt-auto mb-auto">
+                        <i class="bi bi-lock-fill fs-2 d-block mb-2 text-muted opacity-50"></i>
+                        <div class="fw-semibold text-muted">Awaiting Clinician Review</div>
+                        <p class="small text-muted mb-0 mt-1">Your support plan will appear here once the clinician completes their assessment.</p>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

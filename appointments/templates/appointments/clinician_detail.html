@@ -1,0 +1,202 @@
+{% extends 'accounts/base.html' %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+    .case-card { border-radius: 20px; border: 1px solid rgba(0,0,0,0.05); overflow: hidden; }
+    .info-chip { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 0.6rem 0.9rem; }
+    .info-label { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; color: #94a3b8; margin-bottom: 2px; }
+    .locked-file { background: #f8fafc; border: 1.5px dashed #cbd5e1; border-radius: 14px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center mb-4">
+    <a href="{% url 'clinician_appointment_list' %}" class="btn btn-light rounded-circle shadow-sm me-3 d-flex align-items-center justify-content-center" style="width: 42px; height: 42px;"><i class="bi bi-arrow-left"></i></a>
+    <div class="flex-grow-1">
+        <h2 class="fw-bold mb-0" style="letter-spacing: -0.5px;">{{ appointment.child.name }}</h2>
+        <p class="text-muted mb-0 mt-1" style="font-size: 0.88rem;">Consultation for {{ appointment.caregiver.get_full_name|default:appointment.caregiver.username }}</p>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+        <a href="{% url 'appointment_messages_page' appointment.id %}" class="btn btn-light rounded-pill fw-semibold shadow-sm border d-flex align-items-center gap-2" style="font-size: 0.85rem;">
+            <i class="bi bi-chat-dots-fill text-primary"></i> Messages
+            {% if appointment.messages.count %}<span class="badge bg-primary text-white rounded-pill" style="font-size: 0.65rem;">{{ appointment.messages.count }}</span>{% endif %}
+        </a>
+        <span class="badge rounded-pill px-4 py-2 fw-semibold shadow-sm
+            {% if appointment.status == 'REQUESTED' %}bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25
+            {% elif appointment.status == 'CONFIRMED' %}bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25
+            {% elif appointment.status == 'COMPLETED' %}bg-success bg-opacity-10 text-success border border-success border-opacity-25
+            {% else %}bg-secondary bg-opacity-10 text-secondary{% endif %}" style="font-size: 0.82rem;">
+            <i class="bi {% if appointment.status == 'REQUESTED' %}bi-clock{% elif appointment.status == 'CONFIRMED' %}bi-check-circle{% elif appointment.status == 'COMPLETED' %}bi-patch-check{% else %}bi-dash{% endif %} me-1"></i>
+            {{ appointment.get_status_display }}
+        </span>
+    </div>
+</div>
+
+{% if messages %}
+<div class="mb-3">
+    {% for message in messages %}{% if 'dialog' not in message.tags %}
+    <div class="alert {% if 'success' in message.tags %}alert-success{% elif 'error' in message.tags %}alert-danger{% elif 'warning' in message.tags %}alert-warning{% else %}alert-info{% endif %} alert-dismissible fade show rounded-4 border-0 shadow-sm" role="alert">
+        <i class="bi {% if 'success' in message.tags %}bi-check-circle-fill{% elif 'error' in message.tags %}bi-exclamation-triangle-fill{% elif 'warning' in message.tags %}bi-exclamation-circle-fill{% else %}bi-info-circle-fill{% endif %} me-2"></i>
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endif %}{% endfor %}
+</div>
+{% endif %}
+
+<div class="row justify-content-center g-4">
+    <div class="col-lg-8">
+        <div class="card case-card border-0 shadow-sm">
+            <div class="card-body p-4 p-md-5">
+                <div class="d-flex align-items-center gap-3 mb-4">
+                    <div class="d-inline-flex align-items-center justify-content-center rounded-circle" style="width: 56px; height: 56px; background: linear-gradient(135deg, #d1fae5, #a7f3d0);">
+                        <i class="bi bi-clipboard2-pulse fs-4 text-success"></i>
+                    </div>
+                    <div>
+                        <h4 class="fw-bold mb-1">Case Overview</h4>
+                        <p class="text-muted small mb-0">Review the caregiver's report, add clinical notes, and prepare a support plan.</p>
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-4">
+                    <div class="col-sm-6">
+                        <div class="info-chip">
+                            <div class="info-label">Reason</div>
+                            <span class="badge rounded-pill px-2 py-1 {% if appointment.reason_type == 'SEVERE' %}bg-danger bg-opacity-10 text-danger{% else %}bg-info bg-opacity-10 text-info{% endif %}">
+                                {{ appointment.get_reason_type_display }}
+                            </span>
+                        </div>
+                    </div>
+                    {% if appointment.preferred_date %}
+                    <div class="col-sm-6">
+                        <div class="info-chip">
+                            <div class="info-label">Preferred</div>
+                            <div class="fw-semibold text-dark small">{{ appointment.preferred_date|date:"M j, Y" }} · {{ appointment.get_preferred_time_window_display }}</div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    <div class="col-sm-6">
+                        <div class="info-chip">
+                            <div class="info-label">Requested</div>
+                            <div class="fw-semibold text-dark small">{{ appointment.created_at|date:"M j, Y · h:i A" }}</div>
+                        </div>
+                    </div>
+                    {% if appointment.confirmed_at %}
+                    <div class="col-sm-6">
+                        <div class="info-chip">
+                            <div class="info-label">Confirmed</div>
+                            <div class="fw-semibold text-dark small">{{ appointment.confirmed_at|date:"M j, Y · h:i A" }}</div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="mb-4">
+                    <div class="info-label mb-1">Caregiver's Notes</div>
+                    <div class="p-3 rounded-3 border" style="background: #fafbfc; font-size: 0.92rem; line-height: 1.6;">
+                        {{ appointment.reason_text }}
+                    </div>
+                </div>
+
+                <!-- Attached Reports (PDFs + wellbeing entry) — gated by status -->
+                {% with report_count=appointment.medical_reports.count %}
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6 class="fw-bold mb-0 text-dark"><i class="bi bi-folder-fill text-primary me-2"></i>Attached Reports</h6>
+                        {% if appointment.entry %}
+                        <span class="badge bg-primary bg-opacity-10 text-primary" style="font-size: 0.72rem;">{{ report_count|add:"1" }} item{{ report_count|add:"1"|pluralize }}</span>
+                        {% else %}
+                        <span class="badge bg-primary bg-opacity-10 text-primary" style="font-size: 0.72rem;">{{ report_count }} item{{ report_count|pluralize }}</span>
+                        {% endif %}
+                    </div>
+
+                    {% if report_count == 0 and not appointment.entry %}
+                        <div class="text-center py-3 text-muted small">
+                            <i class="bi bi-folder-x d-block fs-4 opacity-25 mb-1"></i>
+                            No reports attached to this request.
+                        </div>
+                    {% elif appointment.status == 'REQUESTED' %}
+                        <div class="locked-file text-center py-4 px-4">
+                            <i class="bi bi-lock-fill fs-3 text-muted opacity-50 d-block mb-2"></i>
+                            <div class="fw-semibold text-muted">Report access locked</div>
+                            <p class="small text-muted mb-0 mt-1">
+                                Confirm the appointment to unlock the caregiver's attached reports.
+                            </p>
+                        </div>
+                    {% else %}
+                        {% if appointment.entry %}
+                        <div class="d-flex align-items-center justify-content-between gap-3 p-3 rounded-3 mb-2" style="background: #f8fafc; border: 1px solid #e2e8f0;">
+                            <div class="d-flex align-items-center gap-3 min-width-0">
+                                <i class="bi bi-clipboard2-data-fill text-success fs-4 flex-shrink-0"></i>
+                                <div class="min-width-0">
+                                    <div class="fw-semibold text-dark text-truncate" style="font-size: 0.9rem;">Wellbeing report (model evaluation)</div>
+                                    <div class="text-muted" style="font-size: 0.75rem;">
+                                        Week of {{ appointment.entry.week_start|date:"M j" }} – {{ appointment.entry.week_end|date:"M j" }}
+                                        · Overall {{ appointment.entry.overall_score|floatformat:1|default:"--" }}/4
+                                    </div>
+                                </div>
+                            </div>
+                            <a href="{% url 'wellbeing_entry_export_pdf' appointment.entry.id %}" target="_blank" rel="noopener"
+                               class="btn btn-sm btn-outline-success rounded-pill d-flex align-items-center gap-1 shadow-sm flex-shrink-0"
+                               style="font-size: 0.75rem; padding: 4px 12px;">
+                                <i class="bi bi-eye-fill"></i> View PDF
+                            </a>
+                        </div>
+                        {% endif %}
+
+                        {% for report in appointment.medical_reports.all %}
+                        <div class="d-flex align-items-center justify-content-between gap-3 p-3 rounded-3 mb-2" style="background: #f8fafc; border: 1px solid #e2e8f0;">
+                            <div class="d-flex align-items-center gap-3 min-width-0">
+                                <i class="bi bi-file-earmark-pdf-fill text-danger fs-4 flex-shrink-0"></i>
+                                <div class="min-width-0">
+                                    <div class="fw-semibold text-dark text-truncate" style="font-size: 0.9rem;">{{ report.original_filename }}</div>
+                                    <div class="text-muted" style="font-size: 0.75rem;">
+                                        Uploaded {{ report.uploaded_at|date:"M j, Y" }} · {{ report.size_bytes|filesizeformat }}
+                                    </div>
+                                </div>
+                            </div>
+                            <a href="{% url 'appointment_report_download' appointment.id report.id %}" target="_blank" rel="noopener"
+                               class="btn btn-sm btn-outline-primary rounded-pill d-flex align-items-center gap-1 shadow-sm flex-shrink-0"
+                               style="font-size: 0.75rem; padding: 4px 12px;">
+                                <i class="bi bi-eye-fill"></i> View PDF
+                            </a>
+                        </div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+                {% endwith %}
+
+                <div class="d-flex justify-content-between align-items-center gap-3 flex-wrap border-top pt-4">
+                    <a href="{% url 'clinician_appointment_list' %}" class="btn btn-light rounded-pill px-4 fw-semibold border shadow-sm">
+                        <i class="bi bi-arrow-left me-1"></i> Back to Cases
+                    </a>
+                    <div class="d-flex gap-2 flex-wrap">
+                        {% if appointment.status == 'REQUESTED' %}
+                            <form method="post" action="{% url 'clinician_confirm_appointment' appointment.id %}" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm">
+                                    <i class="bi bi-check2-circle me-1"></i> Confirm
+                                </button>
+                            </form>
+                            <a href="{% url 'clinician_write_review' appointment.id %}" class="btn btn-light rounded-pill px-4 fw-semibold border shadow-sm">
+                                Open Review <i class="bi bi-arrow-right ms-1"></i>
+                            </a>
+                        {% elif appointment.status == 'CONFIRMED' %}
+                            <a href="{% url 'clinician_write_review' appointment.id %}" class="btn rounded-pill px-5 fw-bold shadow" style="background: linear-gradient(135deg, #34d399, #059669); color: #fff; border: none;">
+                                Continue Review <i class="bi bi-arrow-right ms-2"></i>
+                            </a>
+                        {% elif appointment.status == 'COMPLETED' %}
+                            <a href="{% url 'clinician_write_review' appointment.id %}" class="btn btn-outline-success rounded-pill px-5 fw-semibold shadow-sm">
+                                <i class="bi bi-patch-check me-1"></i> View Completed Case
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# Success dialog for confirm/complete is rendered by the global Universal Event Modal in accounts/base.html, keyed off the 'dialog-confirmed' / 'dialog-completed' extra_tags. #}
+{% endblock %}
