@@ -1,0 +1,866 @@
+{% extends 'layouts/caregiver_base.html' %}
+{% block caregiver_title %}Dashboard — AutiBloom{% endblock %}
+
+{% block caregiver_extra_css %}
+<!-- Premium Typography: Plus Jakarta Sans for Display, Inter for Data -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+
+/* =====================================================
+   TOKENS & GLOBAL
+   ===================================================== */
+:root {
+  --teal:    #14b8a6;
+  --teal-d:  #0f766e;
+  --violet:  #8b5cf6;
+  --amber:   #f59e0b;
+  --rose:    #f43f5e;
+  --blue:    #3b82f6;
+  --night:   #0f172a;
+  --night-2: #1e293b;
+  --night-3: #334155;
+  --soft:    #f8fafc;
+  --border:  rgba(0,0,0,.06);
+  --tr:      all .4s cubic-bezier(0.4, 0, 0.2, 1);
+  --spring:  all .5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+body { 
+  font-family: 'Inter', sans-serif; 
+  background: var(--soft); 
+  color: var(--night); 
+}
+
+h1, h2, h3, h4, h5, h6, .display-font {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+/* =====================================================
+   HERO BANNER
+   ===================================================== */
+.db-hero {
+  background: var(--night); /* Base fallback, JS overrides this dynamically */
+  padding: 5rem 0 4rem;
+  position: relative;
+  transition: background 1.5s ease;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.blob-layer {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* floating blobs */
+.blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: .15;
+  pointer-events: none;
+  animation: drift 20s ease-in-out infinite alternate;
+}
+.blob-a { width:450px;height:450px; background:var(--teal);   top:-150px; left:-100px;  animation-duration:24s; }
+.blob-b { width:380px;height:380px; background:var(--violet); bottom:-100px; right:-80px; animation-duration:18s; animation-delay:-5s; }
+.blob-c { width:280px;height:280px; background:var(--amber);  top:20%;  right:25%;   animation-duration:15s; animation-delay:-2s; }
+@keyframes drift {
+  from { transform: translate(0,0) scale(1); }
+  to   { transform: translate(50px,30px) scale(1.1); }
+}
+
+/* text */
+.hero-eyebrow {
+  display: inline-flex; align-items: center; gap: .5rem;
+  font-family: 'Inter', sans-serif;
+  font-size: .75rem; font-weight:700; letter-spacing:.12em; text-transform:uppercase;
+  color: var(--teal);
+  background: rgba(20,184,166,.15);
+  border: 1px solid rgba(20,184,166,.3);
+  border-radius:100px;
+  padding: .35rem 1rem;
+  margin-bottom:1.25rem;
+  box-shadow: 0 4px 12px rgba(20,184,166,0.1);
+}
+.hero-eyebrow::before {
+  content:''; width:8px; height:8px; border-radius:50%;
+  background:var(--teal); animation:pulse-dot 2s infinite;
+  box-shadow: 0 0 10px var(--teal);
+}
+@keyframes pulse-dot {
+  0%,100%{box-shadow:0 0 0 0 rgba(20,184,166,.6);}
+  50%{box-shadow:0 0 0 6px rgba(20,184,166,0);}
+}
+
+.hero-title {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: clamp(2.25rem, 5vw, 3.5rem);
+  font-weight: 800;
+  letter-spacing: -.03em;
+  color: #fff;
+  line-height: 1.1;
+  margin: 0 0 1rem;
+  text-shadow: 0 4px 20px rgba(0,0,0,0.2);
+}
+.wave {
+  display: inline-block;
+  animation: wave-hand 2.5s ease-in-out infinite;
+  transform-origin: 70% 70%;
+}
+@keyframes wave-hand {
+  0%,100%{transform:rotate(0)} 25%{transform:rotate(-16deg)} 60%{transform:rotate(12deg)}
+}
+
+.hero-sub {
+  font-family: 'Inter', sans-serif;
+  color: #94a3b8;
+  font-size: 1.05rem;
+  font-weight: 400;
+  line-height: 1.6;
+  max-width: 520px;
+}
+.hero-sub strong { color:#f8fafc; font-weight: 600; }
+
+/* profile pill (hero) */
+.pill {
+  display: inline-flex; align-items: center; gap: .85rem;
+  background: rgba(255,255,255,.05);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 100px;
+  padding: .5rem 1.25rem .5rem .5rem;
+  cursor: pointer;
+  transition: var(--spring);
+  position: relative;
+  user-select: none;
+  color: #fff;
+  text-decoration: none;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+}
+.pill:hover { 
+  background:rgba(255,255,255,.08); 
+  border-color:rgba(255,255,255,.2); 
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.3);
+}
+.pill[aria-expanded=true] { 
+  background:rgba(255,255,255,.12); 
+  border-color:var(--teal); 
+  transform: translateY(0);
+}
+
+.pill-avatar {
+  width:44px; height:44px; border-radius:50%;
+  background:linear-gradient(135deg,var(--teal),var(--teal-d));
+  display:flex; align-items:center; justify-content:center;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight:800; font-size:1.1rem; color:#fff; flex-shrink:0;
+  box-shadow:0 4px 12px rgba(20,184,166,.3);
+  border: 2px solid rgba(255,255,255,0.1);
+}
+.pill-label { font-size:.65rem; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:rgba(255,255,255,.5); margin-bottom:.15rem; }
+.pill-name  { font-family: 'Plus Jakarta Sans', sans-serif; font-size:1rem; font-weight:700; color:#fff; line-height:1; }
+.pill-chevron { transition:transform .3s var(--spring); color:rgba(255,255,255,.5); margin-left:.5rem; font-size: 0.9rem; }
+.pill[aria-expanded=true] .pill-chevron { transform:rotate(180deg); color: #fff; }
+
+/* dropdown */
+.profile-drop {
+  position:absolute; top:calc(100% + 12px); right:0;
+  background: rgba(30, 41, 59, 0.95);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:24px;
+  min-width:260px;
+  box-shadow:0 30px 60px rgba(0,0,0,.5), 0 0 0 1px rgba(0,0,0,0.2);
+  padding:.75rem;
+  z-index:9999;
+  display:none;
+  animation:pop-in .3s var(--spring) forwards;
+  transform-origin: top right;
+}
+.profile-drop.open { display:block; }
+@keyframes pop-in {
+  from{opacity:0;transform:translateY(-10px) scale(.95);}
+  to{opacity:1;transform:translateY(0) scale(1);}
+}
+.drop-label { 
+  font-family: 'Inter', sans-serif;
+  font-size:.68rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#94a3b8;padding:.35rem .75rem .6rem; 
+}
+.drop-item {
+  display:flex; align-items:center; gap:.85rem;
+  padding:.85rem .85rem; border-radius:16px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size:.95rem; font-weight:600; color:#e2e8f0;
+  cursor:pointer; text-decoration:none;
+  transition: var(--tr);
+}
+.drop-item:hover { background:rgba(255,255,255,.08); color:#fff; transform: translateX(2px); }
+.drop-item.active { background:rgba(20,184,166,.15); color:var(--teal); }
+.drop-item.active:hover { transform: none; }
+.drop-sm-avatar {
+  width:32px;height:32px;border-radius:50%;
+  background:linear-gradient(135deg,var(--teal),var(--teal-d));
+  display:flex;align-items:center;justify-content:center;
+  font-size:.75rem;font-weight:800;color:#fff;flex-shrink:0;
+  border: 1px solid rgba(255,255,255,0.1);
+}
+.drop-divider { height:1px; background:rgba(255,255,255,.08); margin:.5rem 0; }
+.drop-add { color:var(--teal)!important; }
+.drop-add:hover { background:rgba(20,184,166,.12)!important; }
+
+/* =====================================================
+   BODY BELOW HERO
+   ===================================================== */
+.cards-zone {
+  padding: 3rem 0 4rem;
+  position: relative;
+  z-index: 10;
+  margin-top: -1.5rem; /* Overlap hero slightly */
+}
+
+/* =====================================================
+   KPI CARDS (gradient)
+   ===================================================== */
+.kpi-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px,1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.kcard {
+  border-radius: 24px;
+  padding: 2rem;
+  position: relative;
+  overflow: hidden;
+  color: #fff;
+  box-shadow: 0 12px 32px -8px var(--kshadow, rgba(0,0,0,.3)), inset 0 1px 1px rgba(255,255,255,0.2);
+  transition: var(--spring);
+  border: 1px solid rgba(255,255,255,0.1);
+}
+.kcard:hover { 
+  transform: translateY(-8px) scale(1.01); 
+  box-shadow: 0 20px 40px -10px var(--kshadow, rgba(0,0,0,.4)), inset 0 1px 1px rgba(255,255,255,0.2);
+}
+
+.kcard-teal   { background:linear-gradient(135deg, #14b8a6 0%, #0f766e 100%); --kshadow:rgba(20,184,166,.5); }
+.kcard-violet { background:linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%); --kshadow:rgba(139,92,246,.5); }
+.kcard-amber  { background:linear-gradient(135deg, #f59e0b 0%, #b45309 100%); --kshadow:rgba(245,158,11,.5); }
+
+.kcard::before {               /* big blurry circle inside card */
+  content:'';
+  position:absolute; top:-50px; right:-50px;
+  width:200px; height:200px; border-radius:50%;
+  background:rgba(255,255,255,.12);
+  pointer-events:none;
+  filter: blur(20px);
+}
+.kcard-icon {
+  width:54px; height:54px; border-radius:16px;
+  background:rgba(255,255,255,.15);
+  display:flex; align-items:center; justify-content:center;
+  font-size:1.5rem;
+  margin-bottom:1.5rem;
+  box-shadow: inset 0 1px 2px rgba(255,255,255,0.2);
+}
+.kcard-label { 
+  font-family: 'Inter', sans-serif;
+  font-size:.75rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;opacity:.8;margin-bottom:.4rem; 
+}
+.kcard-value { 
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size:2.5rem;font-weight:800;letter-spacing:-.03em;line-height:1;margin:0; 
+  text-shadow: 0 2px 10px rgba(0,0,0,0.15);
+}
+.kcard-value small { 
+  font-family: 'Inter', sans-serif;
+  font-size:.9rem;font-weight:600;opacity:.8;margin-left:.4rem;letter-spacing:0; 
+  text-shadow: none;
+}
+
+/* =====================================================
+   CHART AREA
+   ===================================================== */
+.chart-zone {
+  display:grid;
+  grid-template-columns:1fr 380px;
+  gap:1.5rem;
+  margin-bottom:1.5rem;
+}
+@media(max-width:991px){.chart-zone{grid-template-columns:1fr;}}
+
+.ccard {
+  background:#fff;
+  border:1px solid rgba(0,0,0,.04);
+  border-radius:24px;
+  padding:2.25rem;
+  box-shadow:0 10px 30px rgba(0,0,0,.04), 0 1px 3px rgba(0,0,0,0.02);
+  transition: var(--tr);
+}
+.ccard:hover { box-shadow:0 15px 40px rgba(0,0,0,.06), 0 2px 6px rgba(0,0,0,0.03); }
+
+.ccard-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:2rem; }
+.ccard-title { font-family:'Plus Jakarta Sans',sans-serif; font-size:1.2rem;font-weight:800;letter-spacing:-.02em;color:var(--night);margin:0; }
+.ccard-sub   { font-family:'Inter',sans-serif; font-size:.85rem;color:#94a3b8;font-weight:500;margin-top:.25rem; }
+.live-badge {
+  display:inline-flex; align-items:center; gap:.4rem;
+  background:#ecfdf5; color:#16a34a;
+  font-size:.7rem; font-weight:800; letter-spacing:.1em; text-transform:uppercase;
+  padding:.4rem 1rem; border-radius:100px;
+}
+.live-badge::before { content:''; width:6px;height:6px;border-radius:50%;background:#22c55e; animation:pulse-dot 2s infinite; }
+
+/* domain bars */
+.d-bars { margin-top:2rem; padding-top:2rem; border-top:1px solid #f1f5f9; display:flex;flex-direction:column;gap:1.1rem; }
+.d-row  { display:flex; align-items:center; gap:.85rem; }
+.d-dot  { width:10px;height:10px;border-radius:50%;flex-shrink:0; }
+.d-name { font-family:'Inter',sans-serif; font-size:.85rem;font-weight:600;color:#64748b;min-width:105px; }
+.d-bar  { flex:1;height:8px;border-radius:10px;background:#f1f5f9;overflow:hidden; }
+.d-fill { height:100%;border-radius:10px;transition:width 1.2s cubic-bezier(.34,1,.64,1); }
+.d-val  { font-family:'Plus Jakarta Sans',sans-serif; font-size:.9rem;font-weight:800;color:var(--night);min-width:28px;text-align:right; }
+
+/* =====================================================
+   BOTTOM ZONE
+   ===================================================== */
+.bottom-zone { display:grid; grid-template-columns:1.2fr 1fr; gap:1.5rem; }
+@media(max-width:850px){.bottom-zone{grid-template-columns:1fr;}}
+
+/* insight card */
+.insight {
+  border-radius:24px;
+  padding:2.5rem;
+  background:linear-gradient(135deg,#0f172a 0%,#1e1b4b 50%,#312e81 100%);
+  color:#fff;
+  position:relative;
+  overflow:hidden;
+  box-shadow:0 16px 40px -10px rgba(49, 46, 129, 0.6);
+  border: 1px solid rgba(255,255,255,0.05);
+}
+.insight::before {
+  content:'';
+  position:absolute; inset:0;
+  background: radial-gradient(circle at 100% 0%, rgba(139, 92, 246, 0.3) 0%, transparent 60%);
+  pointer-events:none;
+}
+.insight::after {
+  content:'🌸';
+  position:absolute;
+  bottom:.5rem; right:1.5rem;
+  font-size:6rem;
+  opacity:.12;
+  pointer-events:none;
+  transform:rotate(10deg);
+}
+.insight-badge {
+  display:inline-flex;align-items:center;gap:.5rem;
+  font-family:'Inter',sans-serif;
+  font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+  color:#a5b4fc;border:1px solid rgba(165,180,252,.3);
+  background: rgba(165,180,252,0.1);
+  border-radius:100px;padding:.4rem 1rem;margin-bottom:1.25rem;
+}
+.insight-title { font-family:'Plus Jakarta Sans',sans-serif; font-size:1.5rem;font-weight:800;letter-spacing:-.02em;margin-bottom:.85rem; line-height:1.2; }
+.insight-body  { font-family:'Inter',sans-serif; color:#cbd5e1;font-size:1rem;line-height:1.6;margin-bottom:2rem; max-width:90%; }
+.insight-stat  {
+  display:inline-flex;align-items:center;gap:.75rem;
+  background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);
+  border-radius:16px;padding:.85rem 1.25rem;
+  font-family:'Inter',sans-serif; font-size:.9rem;font-weight:600; color: #fff;
+  backdrop-filter: blur(8px);
+}
+
+/* actions card */
+.acard { background:#fff;border:1px solid rgba(0,0,0,.04);border-radius:24px;padding:2.5rem;box-shadow:0 10px 30px rgba(0,0,0,.04); }
+.acard-title { font-family:'Plus Jakarta Sans',sans-serif; font-size:1.2rem;font-weight:800;letter-spacing:-.02em;margin-bottom:.3rem; color:var(--night); }
+.acard-sub   { font-family:'Inter',sans-serif; font-size:.85rem;color:#64748b;margin-bottom:2rem; font-weight: 500;}
+
+.btn-bloom {
+  display:flex;align-items:center;justify-content:center;gap:.6rem;
+  font-family:'Inter',sans-serif;font-weight:700;font-size:1rem;
+  border-radius:14px;border:none;width:100%;
+  padding:1.1rem 1.5rem;text-decoration:none;
+  transition:var(--spring);
+  margin-bottom:1rem;
+  cursor: pointer;
+}
+.btn-bloom-pri {
+  background:linear-gradient(135deg,var(--teal) 0%,var(--teal-d) 100%);
+  color:#fff;
+  box-shadow:0 8px 24px -6px rgba(20,184,166,.5);
+}
+.btn-bloom-pri:hover { transform:translateY(-3px);box-shadow:0 14px 32px -6px rgba(20,184,166,.6);color:#fff; }
+.btn-bloom-sec {
+  background:#f8fafc;color:var(--night);
+  border:1.5px solid rgba(0,0,0,.06);
+}
+.btn-bloom-sec:hover { background:#f1f5f9;transform:translateY(-2px);color:var(--night); border-color: rgba(0,0,0,.1); }
+
+.next-box {
+  margin-top:2rem;padding-top:1.5rem;border-top:1px solid #f1f5f9;
+  display:flex;align-items:center;gap:1rem;
+}
+.next-icon {
+  width:48px;height:48px;border-radius:14px;
+  background:linear-gradient(135deg,#ecfdf5,#d1fae5);
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.35rem;color:#10b981;flex-shrink:0;
+}
+.next-lbl { font-family:'Inter',sans-serif; font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#64748b; margin-bottom:.15rem; }
+.next-date { font-family:'Plus Jakarta Sans',sans-serif; font-size:.95rem;font-weight:700;color:var(--night); }
+
+</style>
+{% endblock caregiver_extra_css %}
+
+{% block caregiver_content %}
+
+<!-- ================================================
+  HERO
+================================================= -->
+<section class="db-hero">
+  <div class="blob-layer">
+    <div class="blob blob-a"></div>
+    <div class="blob blob-b"></div>
+    <div class="blob blob-c"></div>
+  </div>
+
+  <div class="container px-3 px-lg-4 position-relative">
+    <div class="d-flex justify-content-between align-items-end flex-wrap gap-4">
+
+      <!-- Left: Greeting -->
+      <div>
+        <div class="hero-eyebrow" id="heroEyebrow">Live Tracking</div>
+        <h1 class="hero-title" id="heroTitle">
+          Good Morning, {{ request.user.username }} <span class="wave" id="heroEmoji">👋</span>
+        </h1>
+        <p class="hero-sub" id="heroSubContainer">
+          <span id="heroSub">{{ stats.submitted_count }}</span> check-in{{ stats.submitted_count|pluralize }} logged for
+          <strong id="heroName">{{ child.name }}</strong>.
+          {% if stats.last_submitted_at %}Last report on <strong>{{ stats.last_submitted_at|date:"M d, Y" }}</strong>.{% else %}Start your first check-in today.{% endif %}
+        </p>
+      </div>
+
+      <!-- Right: Profile Switcher -->
+      <div style="position:relative;">
+        <div class="pill" id="profilePill" onclick="pillToggle()" aria-expanded="false">
+          <div class="pill-avatar" id="pillAv">{{ child.name|make_list|first|upper }}</div>
+          <div>
+            <div class="pill-label">Viewing Profile</div>
+            <div class="pill-name" id="pillNm">{{ child.name }}</div>
+          </div>
+          <i class="bi bi-chevron-down pill-chevron" id="pillChv"></i>
+        </div>
+
+        <div class="profile-drop" id="profileDrop">
+          <div class="drop-label">Switch Profile</div>
+          {% for c in all_children %}
+          <a class="drop-item {% if c.id == child.id %}active{% endif %}"
+             href="#" onclick="switchChild({{ c.id }},'{{ c.name }}',event)">
+            <div class="drop-sm-avatar">{{ c.name|make_list|first|upper }}</div>
+            {{ c.name }}
+            {% if c.id == child.id %}<i class="bi bi-check2 ms-auto"></i>{% endif %}
+          </a>
+          {% endfor %}
+          <div class="drop-divider"></div>
+          <a class="drop-item drop-add" href="{% url 'wellbeing_child_create' %}">
+            <i class="bi bi-person-plus-fill"></i> Add Child
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ================================================
+  BODY
+================================================= -->
+<div class="cards-zone">
+<div class="container px-3 px-lg-4">
+
+  <!-- KPI Cards -->
+  <div class="kpi-row">
+    <div class="kcard kcard-teal">
+      <div class="kcard-icon"><i class="bi bi-clipboard2-pulse-fill"></i></div>
+      <div class="kcard-label">Total Check-ins</div>
+      <p class="kcard-value" id="statCount">{{ stats.submitted_count }}<small>reports</small></p>
+    </div>
+    <div class="kcard kcard-violet">
+      <div class="kcard-icon"><i class="bi bi-lightning-charge-fill"></i></div>
+      <div class="kcard-label">Weeks Tracked</div>
+      <p class="kcard-value" id="statWeeks">{{ stats.weeks_tracked }}<small>/ {{ stats.weeks_since_signup }}</small></p>
+    </div>
+    <div class="kcard kcard-amber">
+      <div class="kcard-icon"><i class="bi bi-calendar-heart-fill"></i></div>
+      <div class="kcard-label">Last Report</div>
+      <p class="kcard-value fs-3 lh-sm" id="statLast">
+        {% if stats.last_submitted_at %}{{ stats.last_submitted_at|date:"M d" }}{% else %}—{% endif %}
+      </p>
+    </div>
+  </div>
+
+  <!-- Charts -->
+  <div class="chart-zone">
+
+    <!-- Trend -->
+    <div class="ccard">
+      <div class="ccard-head">
+        <div>
+          <p class="ccard-title">Wellbeing Growth Trend</p>
+          <p class="ccard-sub">Overall + domain scores across all check-ins</p>
+        </div>
+        <div class="live-badge">Live</div>
+      </div>
+      <div style="height:320px;position:relative;">
+        <canvas id="mainChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Snapshot -->
+    <div class="ccard">
+      <div class="ccard-head">
+        <div>
+          <p class="ccard-title">Domain Snapshot</p>
+          <p class="ccard-sub">Latest check-in breakdown</p>
+        </div>
+      </div>
+      <div style="height:210px;position:relative;">
+        <canvas id="radarChart"></canvas>
+      </div>
+      <div class="d-bars">
+        <div class="d-row">
+          <div class="d-dot" style="background:#6366f1;"></div>
+          <div class="d-name">Communication</div>
+          <div class="d-bar"><div class="d-fill" id="bc" style="background:#6366f1;width:0%;"></div></div>
+          <div class="d-val" id="vc">—</div>
+        </div>
+        <div class="d-row">
+          <div class="d-dot" style="background:#22c55e;"></div>
+          <div class="d-name">Routines</div>
+          <div class="d-bar"><div class="d-fill" id="br" style="background:#22c55e;width:0%;"></div></div>
+          <div class="d-val" id="vr">—</div>
+        </div>
+        <div class="d-row">
+          <div class="d-dot" style="background:#f59e0b;"></div>
+          <div class="d-name">Emotional</div>
+          <div class="d-bar"><div class="d-fill" id="be" style="background:#f59e0b;width:0%;"></div></div>
+          <div class="d-val" id="ve">—</div>
+        </div>
+        <div class="d-row">
+          <div class="d-dot" style="background:#0ea5e9;"></div>
+          <div class="d-name">Sensory</div>
+          <div class="d-bar"><div class="d-fill" id="bs" style="background:#0ea5e9;width:0%;"></div></div>
+          <div class="d-val" id="vs">—</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Bottom -->
+  <div class="bottom-zone">
+
+    <!-- Insight -->
+    <div class="insight">
+      <div class="insight-badge"><i class="bi bi-stars"></i> Weekly Insight</div>
+      <h4 class="insight-title">Consistency builds breakthroughs 🌱</h4>
+      <p class="insight-body">Children on AutiBloom who track weekly show <strong style="color:#e0e7ff;">2.4× more measurable improvement</strong> across all four wellbeing domains within just 8 weeks.</p>
+      <div class="insight-stat">
+        <i class="bi bi-graph-up-arrow" style="color:#a5b4fc;"></i>
+        <span id="insightStat">{{ stats.weeks_tracked }} of {{ stats.weeks_since_signup }} weeks tracked &mdash; {{ stats.consistency_pct }}% consistency</span>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="acard">
+      <h4 class="acard-title">Quick Actions</h4>
+      <p class="acard-sub" id="actionSub">Manage {{ child.name }}'s wellbeing journey</p>
+      <a href="{% url 'wellbeing_entry_start' child.id %}" class="btn-bloom btn-bloom-pri" id="startCta">
+        <i class="bi bi-plus-circle-fill"></i> New Check-in
+      </a>
+      <a href="{% url 'wellbeing_child_report' child.id %}" class="btn-bloom btn-bloom-sec" id="reportCta">
+        <i class="bi bi-bar-chart-line-fill"></i> View Report
+      </a>
+      <a href="{% url 'wellbeing_child_detail' child.id %}" class="btn-bloom btn-bloom-sec" id="historyCta">
+        <i class="bi bi-journal-richtext"></i> View History
+      </a>
+      <a href="{% url 'wellbeing_child_edit' child.id %}" class="btn-bloom btn-bloom-sec" id="editCta">
+        <i class="bi bi-person-lines-fill"></i> Edit Profile
+      </a>
+      <div class="next-box">
+        <div class="next-icon"><i class="bi bi-calendar2-week"></i></div>
+        <div>
+          <div class="next-lbl">Next Check-in</div>
+          <div class="next-date" id="nextCheckin">Loading…</div>
+        </div>
+      </div>
+    </div>
+
+    {% if missed_weeks %}
+    <!-- Overdue Check-ins Card -->
+    <div class="acard" id="overdueCheckinCard" style="border: 1px solid rgba(245, 158, 11, 0.35);">
+      <h4 class="acard-title" style="color: #fbbf24;">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+        {{ missed_weeks|length }} Overdue Check-in{{ missed_weeks|length|pluralize }}
+      </h4>
+      <p class="acard-sub">Select a week to submit its missing progress report.</p>
+      <div class="d-flex flex-column gap-2" style="max-height: 260px; overflow-y: auto;">
+        {% for week in missed_weeks %}
+        <a href="{% url 'wellbeing_entry_start' child.id %}?week_start={{ week.week_start|date:'Y-m-d' }}"
+           class="d-flex justify-content-between align-items-center text-decoration-none rounded-3 px-3 py-2"
+           style="background: rgba(255,255,255,0.07); border: 1px solid {% if week.is_current_week %}rgba(59,130,246,0.4){% else %}rgba(245,158,11,0.4){% endif %}; transition: background 0.2s;"
+           onmouseover="this.style.background='rgba(255,255,255,0.15)'"
+           onmouseout="this.style.background='rgba(255,255,255,0.07)'">
+          <div>
+            <span class="d-block fw-semibold" style="color: #e2e8f0; font-size: 0.875rem;">{{ week.label }}</span>
+            {% if week.is_current_week %}
+              {% if week.days_left == 0 %}<span style="font-size:0.75rem;color:#f87171;">Due today — last day!</span>
+              {% elif week.days_left == 1 %}<span style="font-size:0.75rem;color:#fbbf24;">Due tomorrow</span>
+              {% else %}<span style="font-size:0.75rem;color:#94a3b8;">{{ week.days_left }} days left this week</span>{% endif %}
+            {% else %}
+              <span style="font-size:0.75rem;color:#f59e0b;">Overdue — historical entry allowed</span>
+            {% endif %}
+          </div>
+          <div class="d-flex align-items-center gap-2">
+            <span class="badge" style="background:{% if week.is_current_week %}rgba(59,130,246,0.2){% else %}rgba(245,158,11,0.2){% endif %};color:{% if week.is_current_week %}#93c5fd{% else %}#fcd34d{% endif %};font-size:0.7rem;">
+              {% if week.is_current_week %}This week{% else %}Past{% endif %}
+            </span>
+            <i class="bi bi-arrow-right-circle-fill" style="color:{% if week.is_current_week %}#60a5fa{% else %}#fcd34d{% endif %}"></i>
+          </div>
+        </a>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+  </div><!-- /bottom-zone -->
+
+</div><!-- /container -->
+</div><!-- /cards-zone -->
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+/* ── Helpers ─────────────────────────────── */
+const DETAIL_BASE = "{% url 'wellbeing_child_detail' 999999 %}".replace('999999/', '');
+const START_BASE  = "{% url 'wellbeing_entry_start'  999999 %}".replace('999999/', '');
+
+function nextMonday() {
+  const d = new Date();
+  const diff = (1 - d.getDay() + 7) % 7 || 7;
+  d.setDate(d.getDate() + diff);
+  return d.toLocaleDateString(undefined,{weekday:'long',month:'short',day:'numeric'});
+}
+document.getElementById('nextCheckin').innerText = nextMonday();
+
+/* ── Profile Dropdown ────────────────────── */
+function pillToggle(){
+  const drop = document.getElementById('profileDrop');
+  const pill = document.getElementById('profilePill');
+  const open = drop.classList.contains('open');
+  drop.classList.toggle('open',!open);
+  pill.setAttribute('aria-expanded', String(!open));
+}
+document.addEventListener('click', e => {
+  if (!e.target.closest('#profilePill') && !e.target.closest('#profileDrop')) {
+    document.getElementById('profileDrop').classList.remove('open');
+    document.getElementById('profilePill').setAttribute('aria-expanded','false');
+  }
+});
+
+function switchChild(id, name, e) {
+  e.preventDefault();
+  document.getElementById('pillAv').innerText = name[0].toUpperCase();
+  document.getElementById('pillNm').innerText = name;
+  document.querySelectorAll('.drop-item').forEach(el=>el.classList.remove('active'));
+  e.currentTarget.classList.add('active');
+  document.getElementById('profileDrop').classList.remove('open');
+  
+  // Transition effect
+  const mainCont = document.querySelector('.cards-zone');
+  mainCont.style.opacity = '0.5';
+  mainCont.style.transition = 'opacity 0.2s';
+
+  fetch(`/wellbeing/api/dashboard/child/${id}/`)
+    .then(r=>r.json())
+    .then(data=>{
+      const s = data.stats;
+      const childName = data.child_name;
+      
+      // Update Stats
+      document.getElementById('statCount').innerHTML = `${s.submitted_count}<small>reports</small>`;
+      document.getElementById('statWeeks').innerHTML = `${s.weeks_tracked}<small>/ ${s.weeks_since_signup}</small>`;
+      document.getElementById('insightStat').textContent = `${s.weeks_tracked} of ${s.weeks_since_signup} weeks tracked — ${s.consistency_pct}% consistency`;
+      document.getElementById('statLast').innerText = s.last_submitted_at ? new Date(s.last_submitted_at).toLocaleDateString(undefined, {month:'short', day:'numeric'}) : '—';
+      
+      // Update Names
+      document.getElementById('heroSub').innerText = s.submitted_count;
+      document.getElementById('heroName').innerText = childName;
+      document.getElementById('actionSub').innerText = `Manage ${childName}'s wellbeing journey`;
+      
+      // Update CTA Links
+      // The old logic appended paths onto START_BASE which might contain partial prefixes.
+      // Instead, explicitly construct absolute paths from the root to avoid duplication.
+      document.getElementById('startCta').href   = `/wellbeing/children/${id}/entry/start/`;
+      document.getElementById('reportCta').href   = `/wellbeing/reports/child/${id}/`;
+      document.getElementById('historyCta').href  = `/wellbeing/children/${id}/`;
+      document.getElementById('editCta').href     = `/wellbeing/children/${id}/edit/`;
+      
+      // Update Charts
+      mainChart.data.labels = data.chart_data.labels;
+      mainChart.data.datasets[0].data = data.chart_data.overall;
+      mainChart.data.datasets[1].data = data.chart_data.communication;
+      mainChart.data.datasets[2].data = data.chart_data.routines;
+      mainChart.update();
+      
+      updateDomains(data.chart_data);
+      
+      // Finish transition
+      mainCont.style.opacity = '1';
+    })
+    .catch(err => {
+      console.error('Refresh failed:', err);
+      mainCont.style.opacity = '1';
+    });
+}
+
+/* ── Charts ──────────────────────────────── */
+let mainChart, radarChart;
+
+function grad(ctx, r,g,b) {
+  const g2 = ctx.createLinearGradient(0,0,0,380);
+  g2.addColorStop(0,`rgba(${r},${g},${b},.22)`);
+  g2.addColorStop(1,`rgba(${r},${g},${b},0)`);
+  return g2;
+}
+
+function initCharts(data) {
+  const ctxM = document.getElementById('mainChart').getContext('2d');
+  mainChart = new Chart(ctxM, {
+    type:'line',
+    data:{
+      labels: data.labels,
+      datasets:[
+        { label:'Overall',        data:data.overall,        borderColor:'#14b8a6',backgroundColor:grad(ctxM,20,184,166),fill:true, tension:.42, borderWidth:3, pointBackgroundColor:'#14b8a6',pointBorderColor:'#fff',pointBorderWidth:3,pointRadius:5,pointHoverRadius:9 },
+        { label:'Communication',  data:data.communication,  borderColor:'#8b5cf6', borderWidth:2,borderDash:[5,5],pointRadius:0,tension:.35 },
+        { label:'Routines',       data:data.routines,       borderColor:'#22c55e', borderWidth:2,borderDash:[5,5],pointRadius:0,tension:.35 },
+      ]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      interaction:{mode:'index',intersect:false},
+      plugins:{
+        legend:{ display:true, position:'top', labels:{ boxWidth:10,boxHeight:3,padding:18,usePointStyle:true,pointStyle:'circle', font:{family:'Inter',size:12,weight:'600'}, color:'#64748b' }},
+        tooltip:{ backgroundColor:'rgba(15, 23, 42, 0.95)', padding:14, cornerRadius:16, titleFont:{family:'Plus Jakarta Sans',weight:'800',size:13}, bodyFont:{family:'Inter',size:12}, borderColor:'rgba(255,255,255,.1)', borderWidth:1 }
+      },
+      scales:{
+        x:{ grid:{display:false}, border:{display:false}, ticks:{font:{family:'Inter',size:11,weight:'600'},color:'#94a3b8',maxRotation:0} },
+        y:{ min:0,max:4, grid:{color:'#f8fafc', lineWidth: 1.5}, border:{display:false}, ticks:{stepSize:1,font:{family:'Inter',size:11,weight:'600'},color:'#94a3b8', callback:v=>['Low','','Mid','','High'][v]} }
+      }
+    }
+  });
+
+  const ctxR = document.getElementById('radarChart').getContext('2d');
+  radarChart = new Chart(ctxR,{
+    type:'radar',
+    data:{
+      labels:['Communication','Routines','Emotional','Sensory'],
+      datasets:[{ data:[0,0,0,0], backgroundColor:'rgba(139, 92, 246,.15)', borderColor:'#8b5cf6', borderWidth:3, pointBackgroundColor:'#8b5cf6', pointBorderColor:'#fff', pointBorderWidth:2, pointRadius:5 }]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{r:{min:0,max:4,ticks:{display:false,stepSize:1},grid:{color:'#f1f5f9', lineWidth: 1.5},angleLines:{color:'#e2e8f0'}, pointLabels:{font:{family:'Inter',size:12,weight:'700'},color:'#64748b'}}}
+    }
+  });
+
+  updateDomains(data);
+}
+
+function updateDomains(d) {
+  const i = d.overall.length - 1;
+  const hasData = i >= 0;
+  
+  const set = [
+    [hasData ? d.communication[i] : 0, 'bc', 'vc'],
+    [hasData ? d.routines[i]      : 0, 'br', 'vr'],
+    [hasData ? d.emotional[i]     : 0, 'be', 've'],
+    [hasData ? d.sensory[i]       : 0, 'bs', 'vs']
+  ];
+  
+  set.forEach(([v, bid, vid]) => {
+    document.getElementById(bid).style.width = ((v || 0) / 4 * 100) + '%';
+    document.getElementById(vid).innerText   = hasData && v !== null ? v.toFixed(1) : '—';
+  });
+
+  const rData = hasData ? [d.communication[i], d.routines[i], d.emotional[i], d.sensory[i]] : [0,0,0,0];
+  radarChart.data.datasets[0].data = rData;
+  radarChart.update();
+}
+
+/* ── Time-Based Greeting + Hero Theme ───── */
+function applyTimeTheme() {
+  const h = new Date().getHours();
+  const hero = document.querySelector('.db-hero');
+  const title = document.getElementById('heroTitle');
+  const emoji = document.getElementById('heroEmoji');
+  const eyebrow = document.getElementById('heroEyebrow');
+
+  let greeting, emojiChar, eyebrowText, bg;
+
+  if (h >= 5 && h < 12) {
+    // 🌅 Morning — warm teal/sunrise
+    greeting    = 'Good Morning';
+    emojiChar   = '☀️';
+    eyebrowText = '🌅 Rise & Shine';
+    // Deep green/teal dynamic gradient
+    bg = `
+      radial-gradient(ellipse 70% 90% at 80% 60%, rgba(15, 118, 110, 0.45) 0%, transparent 65%),
+      radial-gradient(ellipse 60% 80% at 10% 20%, rgba(20, 184, 166, 0.3) 0%, transparent 65%),
+      #042f2e`; // teal-950 base
+  } else if (h >= 12 && h < 17) {
+    // ☀️ Afternoon — bright blue/sky
+    greeting    = 'Good Afternoon';
+    emojiChar   = '🌤️';
+    eyebrowText = '☀️ Afternoon Check';
+    bg = `
+      radial-gradient(ellipse 70% 90% at 80% 50%, rgba(59, 130, 246, 0.4) 0%, transparent 65%),
+      radial-gradient(ellipse 60% 80% at 15% 30%, rgba(14, 165, 233, 0.25) 0%, transparent 65%),
+      #0f172a`; // night sky base
+  } else if (h >= 17 && h < 21) {
+    // 🌇 Evening — violet/amber sunset
+    greeting    = 'Good Evening';
+    emojiChar   = '🌇';
+    eyebrowText = '🌇 Evening Wind-Down';
+    bg = `
+      radial-gradient(ellipse 80% 90% at 75% 45%, rgba(124, 58, 237, 0.4) 0%, transparent 65%),
+      radial-gradient(ellipse 55% 70% at 10% 60%, rgba(245, 158, 11, 0.25) 0%, transparent 65%),
+      #1e1b4b`; // indigo-950 base
+  } else {
+    // 🌙 Night — deep navy indigo
+    greeting    = 'Good Night';
+    emojiChar   = '🌙';
+    eyebrowText = '🌙 Night Mode';
+    bg = `
+      radial-gradient(ellipse 60% 80% at 70% 40%, rgba(79, 70, 229, 0.35) 0%, transparent 65%),
+      radial-gradient(ellipse 50% 60% at 20% 20%, rgba(139, 92, 246, 0.2) 0%, transparent 65%),
+      #020617`; // slate-950 base
+  }
+
+  // Update greeting + emoji safely
+  title.innerHTML = `${greeting}, {{ request.user.username }} <span class="wave" id="heroEmoji">${emojiChar}</span>`;
+  eyebrow.textContent = eyebrowText;
+  hero.style.background = bg;
+}
+
+
+document.addEventListener('DOMContentLoaded', () => {
+  applyTimeTheme();
+  initCharts({{ chart_data|safe }});
+});
+</script>
+
+
+{% endblock caregiver_content %}
