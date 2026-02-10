@@ -1,0 +1,685 @@
+{% extends 'layouts/caregiver_base.html' %}
+
+{% block caregiver_title %}{% if is_onboarding %}Welcome to AutiBloom{% else %}{{ title }}{% endif %} — AutiBloom{% endblock %}
+{% block caregiver_topbar_title %}{% if is_onboarding %}Welcome{% else %}{{ title }}{% endif %}{% endblock %}
+
+{% block caregiver_extra_css %}
+<style>
+    /* ── Page Background ── */
+    .ob-page-bg {
+        background: linear-gradient(160deg, #f0fdfa 0%, #ecfdf5 30%, #f5f3ff 60%, #faf5ff 100%);
+        min-height: 80vh;
+        padding: 1rem 0 3rem;
+        position: relative;
+        overflow: hidden;
+    }
+    .ob-page-bg::before {
+        content: '';
+        position: absolute;
+        top: -120px;
+        right: -80px;
+        width: 300px;
+        height: 300px;
+        background: radial-gradient(circle, rgba(20,184,166,0.08) 0%, transparent 70%);
+        border-radius: 50%;
+    }
+    .ob-page-bg::after {
+        content: '';
+        position: absolute;
+        bottom: -60px;
+        left: -40px;
+        width: 200px;
+        height: 200px;
+        background: radial-gradient(circle, rgba(99,102,241,0.06) 0%, transparent 70%);
+        border-radius: 50%;
+    }
+
+    /* ── Stepper ── */
+    .ob-stepper {
+        display: flex;
+        justify-content: center;
+        gap: 0;
+        margin-bottom: 2rem;
+        position: relative;
+    }
+    .ob-stepper::before {
+        content: '';
+        position: absolute;
+        top: 26px;
+        left: 20%;
+        right: 20%;
+        height: 3px;
+        background: linear-gradient(90deg, #e2e8f0, #e2e8f0);
+        z-index: 0;
+        border-radius: 2px;
+    }
+    .ob-step {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        flex: 1;
+        position: relative;
+        z-index: 1;
+        cursor: default;
+    }
+    .ob-step-circle {
+        width: 52px;
+        height: 52px;
+        border-radius: 50%;
+        background: #e2e8f0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        color: #94a3b8;
+        transition: all 0.45s cubic-bezier(.4,0,.2,1);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        border: 3px solid #fff;
+    }
+    .ob-step.active .ob-step-circle {
+        background: linear-gradient(135deg, #0d9488, #14b8a6);
+        color: #fff;
+        box-shadow: 0 6px 24px rgba(13,148,136,0.3);
+        transform: scale(1.15);
+        border-color: #fff;
+    }
+    .ob-step.done .ob-step-circle {
+        background: linear-gradient(135deg, #059669, #10b981);
+        color: #fff;
+        box-shadow: 0 3px 12px rgba(5,150,105,0.25);
+    }
+    .ob-step-label {
+        margin-top: 0.55rem;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: #b0b8c8;
+        transition: color 0.3s;
+    }
+    .ob-step.active .ob-step-label { color: #0d9488; }
+    .ob-step.done .ob-step-label   { color: #059669; }
+
+    /* ── Cards ── */
+    .ob-card {
+        background: #fff;
+        border-radius: 1.25rem;
+        box-shadow: 0 12px 48px rgba(0,0,0,0.07), 0 2px 6px rgba(0,0,0,0.03);
+        overflow: visible;
+        position: relative;
+    }
+    .ob-card-header {
+        padding: 2.5rem 2rem 2.2rem;
+        text-align: center;
+        position: relative;
+        border-bottom: none;
+    }
+    .ob-icon-wrap {
+        width: 84px;
+        height: 84px;
+        margin: 0 auto 1.1rem;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.2rem;
+        position: relative;
+    }
+    .ob-icon-wrap::after {
+        content: '';
+        position: absolute;
+        inset: -6px;
+        border-radius: 50%;
+        border: 2.5px dashed rgba(255,255,255,0.5);
+    }
+    .ob-icon-wrap.icon-child {
+        background: linear-gradient(135deg, #14b8a6, #0d9488);
+        color: #fff;
+        box-shadow: 0 8px 28px rgba(13,148,136,0.3);
+    }
+    .ob-icon-wrap.icon-medical {
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+        color: #fff;
+        box-shadow: 0 8px 28px rgba(245,158,11,0.3);
+    }
+    .ob-icon-wrap.icon-notes {
+        background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+        color: #fff;
+        box-shadow: 0 8px 28px rgba(139,92,246,0.3);
+    }
+    .ob-card-header h4 {
+        font-weight: 800;
+        font-size: 1.3rem;
+        color: #0f172a;
+        margin-bottom: 0;
+        letter-spacing: -0.01em;
+    }
+
+    .ob-card-body {
+        padding: 0.5rem 2rem 1.5rem;
+    }
+    .ob-divider {
+        height: 1px;
+        background: linear-gradient(90deg, transparent 0%, #e2e8f0 30%, #e2e8f0 70%, transparent 100%);
+        margin: 0 2rem;
+    }
+
+    /* ── Panels ── */
+    .ob-panel { display: none; }
+    .ob-panel.active {
+        display: block;
+        animation: obSlideUp 0.45s cubic-bezier(.4,0,.2,1);
+    }
+    @keyframes obSlideUp {
+        from { opacity: 0; transform: translateY(20px) scale(0.98); }
+        to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    /* ── Form Fields ── */
+    .ob-field {
+        margin-bottom: 1.4rem;
+    }
+    .ob-field label {
+        font-weight: 600;
+        font-size: 0.9rem;
+        color: #334155;
+        margin-bottom: 0.45rem;
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+    }
+    .ob-field .form-control,
+    .ob-field .form-select {
+        border-radius: 0.75rem;
+        border: 2px solid #e2e8f0;
+        padding: 0.7rem 1rem;
+        font-size: 0.95rem;
+        transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+        background: #fafbfc;
+    }
+    .ob-field .form-control:focus,
+    .ob-field .form-select:focus {
+        border-color: #14b8a6;
+        box-shadow: 0 0 0 4px rgba(20,184,166,0.1);
+        background: #fff;
+    }
+    .ob-field .form-control.is-invalid,
+    .ob-field .form-select.is-invalid {
+        border-color: #ef4444;
+        box-shadow: 0 0 0 4px rgba(239,68,68,0.08);
+    }
+    .ob-field .form-text {
+        font-size: 0.8rem;
+        color: #94a3b8;
+        margin-top: 0.35rem;
+    }
+    .ob-field .invalid-feedback {
+        font-size: 0.82rem;
+        margin-top: 0.3rem;
+    }
+    .ob-field .ob-dob-error {
+        color: #ef4444;
+        font-size: 0.82rem;
+        margin-top: 0.3rem;
+        display: none;
+    }
+    .ob-field .ob-dob-error.show {
+        display: block;
+    }
+
+    /* ── Buttons ── */
+    .ob-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem 2rem 2rem;
+        gap: 1rem;
+    }
+    .btn-ob-next {
+        background: linear-gradient(135deg, #0d9488, #14b8a6);
+        color: #fff;
+        border: none;
+        border-radius: 0.75rem;
+        padding: 0.7rem 2rem;
+        font-weight: 700;
+        font-size: 0.95rem;
+        transition: all 0.25s;
+        box-shadow: 0 4px 16px rgba(13,148,136,0.25);
+        letter-spacing: 0.01em;
+    }
+    .btn-ob-next:hover {
+        background: linear-gradient(135deg, #0f766e, #0d9488);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(13,148,136,0.35);
+        color: #fff;
+    }
+    .btn-ob-back {
+        background: #fff;
+        color: #64748b;
+        border: 2px solid #e2e8f0;
+        border-radius: 0.75rem;
+        padding: 0.7rem 1.5rem;
+        font-weight: 600;
+        font-size: 0.95rem;
+        transition: all 0.25s;
+    }
+    .btn-ob-back:hover {
+        border-color: #cbd5e1;
+        color: #334155;
+        background: #f8fafc;
+    }
+    .btn-ob-submit {
+        background: linear-gradient(135deg, #059669, #10b981);
+        color: #fff;
+        border: none;
+        border-radius: 0.75rem;
+        padding: 0.7rem 2.5rem;
+        font-weight: 700;
+        font-size: 1rem;
+        transition: all 0.25s;
+        box-shadow: 0 4px 16px rgba(5,150,105,0.25);
+        letter-spacing: 0.01em;
+    }
+    .btn-ob-submit:hover {
+        background: linear-gradient(135deg, #047857, #059669);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(5,150,105,0.35);
+        color: #fff;
+    }
+
+    /* ── Hero ── */
+    .ob-hero {
+        text-align: center;
+        margin-bottom: 1.8rem;
+    }
+    .ob-hero-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: #fff;
+        border: 1.5px solid rgba(13,148,136,0.25);
+        border-radius: 2rem;
+        padding: 0.45rem 1.2rem 0.45rem 0.7rem;
+        font-size: 0.82rem;
+        font-weight: 700;
+        color: #0d9488;
+        margin-bottom: 0.8rem;
+        box-shadow: 0 2px 8px rgba(13,148,136,0.1);
+    }
+    .ob-hero-badge i {
+        font-size: 1.1rem;
+    }
+    .ob-hero h2 {
+        font-weight: 800;
+        font-size: 1.75rem;
+        color: #0f172a;
+        margin-bottom: 0.4rem;
+        letter-spacing: -0.02em;
+    }
+    .ob-hero p {
+        color: #64748b;
+        font-size: 0.95rem;
+        max-width: 420px;
+        margin: 0 auto;
+        line-height: 1.6;
+    }
+</style>
+{% endblock caregiver_extra_css %}
+
+{% block caregiver_content %}
+<div class="ob-page-bg">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-11 col-sm-10 col-md-8 col-lg-6 col-xl-5">
+
+                {% if is_onboarding %}
+                <div class="ob-hero">
+                    <div class="ob-hero-badge">
+                        <i class="bi bi-flower1"></i> Getting Started
+                    </div>
+                    <h2>Welcome to AutiBloom!</h2>
+                    <p>Let's set up your child's profile in a few quick steps. You can always update this later.</p>
+                </div>
+                {% else %}
+                <h3 class="fw-bold text-center mb-4">{{ title }}</h3>
+                {% endif %}
+
+                <!-- Step Indicators -->
+                <div class="ob-stepper">
+                    <div class="ob-step active" data-step="0">
+                        <div class="ob-step-circle"><i class="bi bi-person-fill"></i></div>
+                        <span class="ob-step-label">Basics</span>
+                    </div>
+                    <div class="ob-step" data-step="1">
+                        <div class="ob-step-circle"><i class="bi bi-heart-pulse-fill"></i></div>
+                        <span class="ob-step-label">Medical</span>
+                    </div>
+                    <div class="ob-step" data-step="2">
+                        <div class="ob-step-circle"><i class="bi bi-journal-text"></i></div>
+                        <span class="ob-step-label">Finish</span>
+                    </div>
+                </div>
+
+                <form method="post" id="onboardingForm" enctype="multipart/form-data" novalidate>
+                    {% csrf_token %}
+
+                    <!-- ═══ STEP 1: Basic Info ═══ -->
+                    <div class="ob-panel active" data-panel="0">
+                        <div class="ob-card">
+                            <div class="ob-card-header">
+                                <div class="ob-icon-wrap icon-child">
+                                    <i class="bi bi-emoji-smile-fill"></i>
+                                </div>
+                                <h4>About Your Child</h4>
+                            </div>
+                            <div class="ob-divider"></div>
+                            <div class="ob-card-body">
+                                <div class="ob-field">
+                                    <label for="id_name">
+                                        <i class="bi bi-person" style="color:#14b8a6;"></i>
+                                        Child's Name <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="text" name="name" id="id_name"
+                                           class="form-control {% if form.name.errors %}is-invalid{% endif %}"
+                                           value="{{ form.name.value|default_if_none:'' }}"
+                                           placeholder="e.g. Emma, Aarav, Liam..." required>
+                                    {% if form.name.errors %}
+                                    <div class="invalid-feedback">{{ form.name.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="ob-field">
+                                    <label for="id_profile_picture">
+                                        <i class="bi bi-camera-fill" style="color:#14b8a6;"></i>
+                                        Profile Picture <span class="text-muted fw-normal" style="font-size:0.82rem;">(optional)</span>
+                                    </label>
+                                    <input type="file" name="profile_picture" id="id_profile_picture"
+                                           class="form-control {% if form.profile_picture.errors %}is-invalid{% endif %}"
+                                           accept="image/*">
+                                    {% if form.instance.profile_picture %}
+                                        <div class="mt-2 text-muted" style="font-size:0.82rem;">Current: {{ form.instance.profile_picture.name }}</div>
+                                    {% endif %}
+                                    {% if form.profile_picture.errors %}
+                                    <div class="invalid-feedback">{{ form.profile_picture.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="ob-field mb-0">
+                                    <label for="id_date_of_birth">
+                                        <i class="bi bi-calendar-heart" style="color:#14b8a6;"></i>
+                                        Date of Birth <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="date" name="date_of_birth" id="id_date_of_birth"
+                                           class="form-control {% if form.date_of_birth.errors %}is-invalid{% endif %}"
+                                           value="{% if form.date_of_birth.value|date:'Y-m-d' %}{{ form.date_of_birth.value|date:'Y-m-d' }}{% else %}{{ form.date_of_birth.value|default_if_none:'' }}{% endif %}"
+                                           min="2000-01-01"
+                                           max="2026-02-21">
+                                    <div class="form-text">Used to calculate age for wellbeing analysis.</div>
+                                    <div class="ob-dob-error" id="dobError"></div>
+                                    {% if form.date_of_birth.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.date_of_birth.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="ob-actions">
+                                {% if not is_onboarding %}
+                                <a href="{% url 'wellbeing_child_list' %}" class="btn btn-ob-back">
+                                    <i class="bi bi-x-lg me-1"></i> Cancel
+                                </a>
+                                {% else %}
+                                <div></div>
+                                {% endif %}
+                                <button type="button" class="btn btn-ob-next" onclick="obNext()">
+                                    Continue <i class="bi bi-arrow-right ms-1"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ═══ STEP 2: Medical Details ═══ -->
+                    <div class="ob-panel" data-panel="1">
+                        <div class="ob-card">
+                            <div class="ob-card-header">
+                                <div class="ob-icon-wrap icon-medical">
+                                    <i class="bi bi-clipboard2-pulse-fill"></i>
+                                </div>
+                                <h4>Medical Details</h4>
+                            </div>
+                            <div class="ob-divider"></div>
+                            <div class="ob-card-body">
+                                <div class="ob-field">
+                                    <label for="id_sex">
+                                        <i class="bi bi-gender-ambiguous" style="color:#d97706;"></i>
+                                        Sex Assigned at Birth <span class="text-danger">*</span>
+                                    </label>
+                                    <select name="sex" id="id_sex"
+                                            class="form-select {% if form.sex.errors %}is-invalid{% endif %}">
+                                        <option value="">Select...</option>
+                                        <option value="m" {% if form.sex.value == 'm' %}selected{% endif %}>Male</option>
+                                        <option value="f" {% if form.sex.value == 'f' %}selected{% endif %}>Female</option>
+                                    </select>
+                                    <div class="form-text">As recorded in medical records. Required for analysis.</div>
+                                    {% if form.sex.errors %}
+                                    <div class="invalid-feedback">{{ form.sex.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="ob-field">
+                                    <label for="id_jaundice">
+                                        <i class="bi bi-droplet-half" style="color:#d97706;"></i>
+                                        Born with Jaundice? <span class="text-danger">*</span>
+                                    </label>
+                                    <select name="jaundice" id="id_jaundice"
+                                            class="form-select {% if form.jaundice.errors %}is-invalid{% endif %}">
+                                        <option value="">Select...</option>
+                                        <option value="yes" {% if form.jaundice.value == 'yes' %}selected{% endif %}>Yes</option>
+                                        <option value="no" {% if form.jaundice.value == 'no' %}selected{% endif %}>No</option>
+                                    </select>
+                                    <div class="form-text">Yellowing of skin or eyes at birth.</div>
+                                    {% if form.jaundice.errors %}
+                                    <div class="invalid-feedback">{{ form.jaundice.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="ob-field mb-0">
+                                    <label for="id_family_asd">
+                                        <i class="bi bi-people-fill" style="color:#d97706;"></i>
+                                        Family History of ASD? <span class="text-danger">*</span>
+                                    </label>
+                                    <select name="family_asd" id="id_family_asd"
+                                            class="form-select {% if form.family_asd.errors %}is-invalid{% endif %}">
+                                        <option value="">Select...</option>
+                                        <option value="yes" {% if form.family_asd.value == 'yes' %}selected{% endif %}>Yes</option>
+                                        <option value="no" {% if form.family_asd.value == 'no' %}selected{% endif %}>No</option>
+                                    </select>
+                                    <div class="form-text">Any family member with Autism Spectrum Disorder.</div>
+                                    {% if form.family_asd.errors %}
+                                    <div class="invalid-feedback">{{ form.family_asd.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="ob-actions">
+                                <button type="button" class="btn btn-ob-back" onclick="obBack()">
+                                    <i class="bi bi-arrow-left me-1"></i> Back
+                                </button>
+                                <button type="button" class="btn btn-ob-next" onclick="obNext()">
+                                    Continue <i class="bi bi-arrow-right ms-1"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ═══ STEP 3: Notes + Submit ═══ -->
+                    <div class="ob-panel" data-panel="2">
+                        <div class="ob-card">
+                            <div class="ob-card-header">
+                                <div class="ob-icon-wrap icon-notes">
+                                    <i class="bi bi-stars"></i>
+                                </div>
+                                <h4>Almost Done!</h4>
+                            </div>
+                            <div class="ob-divider"></div>
+                            <div class="ob-card-body">
+                                <div class="ob-field mb-0">
+                                    <label for="id_notes">
+                                        <i class="bi bi-chat-square-text" style="color:#8b5cf6;"></i>
+                                        Notes <span class="text-muted fw-normal" style="font-size:0.82rem;">(optional)</span>
+                                    </label>
+                                    <textarea name="notes" id="id_notes" rows="4"
+                                              class="form-control {% if form.notes.errors %}is-invalid{% endif %}"
+                                              placeholder="Anything you'd like to record — preferences, observations, or therapist notes...">{{ form.notes.value|default_if_none:'' }}</textarea>
+                                    <div class="form-text">Private to you. Visible only to linked caregivers.</div>
+                                    {% if form.notes.errors %}
+                                    <div class="invalid-feedback">{{ form.notes.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="ob-actions">
+                                <button type="button" class="btn btn-ob-back" onclick="obBack()">
+                                    <i class="bi bi-arrow-left me-1"></i> Back
+                                </button>
+                                <button type="submit" class="btn btn-ob-submit">
+                                    <i class="bi bi-check-circle-fill me-2"></i>
+                                    {% if is_onboarding %}Get Started{% else %}Save Profile{% endif %}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+(function() {
+    let current = 0;
+    const panels = document.querySelectorAll('.ob-panel');
+    const steps  = document.querySelectorAll('.ob-step');
+
+    // ── Set dynamic max for DOB (today) ──
+    const dobInput = document.getElementById('id_date_of_birth');
+    const dobError = document.getElementById('dobError');
+    const today = new Date();
+    const todayStr = today.toISOString().split('T')[0];
+    dobInput.setAttribute('max', todayStr);
+
+    function showStep(idx) {
+        panels.forEach(p => p.classList.remove('active'));
+        steps.forEach((s, i) => {
+            s.classList.remove('active', 'done');
+            if (i < idx) s.classList.add('done');
+            if (i === idx) s.classList.add('active');
+        });
+        panels[idx].classList.add('active');
+        current = idx;
+        panels[idx].scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    function validateDOB() {
+        const val = dobInput.value;
+        if (!val) {
+            // DOB is optional - clear any errors
+            dobInput.classList.remove('is-invalid');
+            dobError.classList.remove('show');
+            dobError.textContent = '';
+            return true;
+        }
+        const dob = new Date(val);
+        const minDate = new Date('2000-01-01');
+
+        if (isNaN(dob.getTime())) {
+            dobInput.classList.add('is-invalid');
+            dobError.textContent = 'Please enter a valid date.';
+            dobError.classList.add('show');
+            return false;
+        }
+        if (dob > today) {
+            dobInput.classList.add('is-invalid');
+            dobError.textContent = 'Date of birth cannot be in the future.';
+            dobError.classList.add('show');
+            return false;
+        }
+        if (dob < minDate) {
+            dobInput.classList.add('is-invalid');
+            dobError.textContent = 'Date of birth must be after January 1, 2000.';
+            dobError.classList.add('show');
+            return false;
+        }
+        // Clear errors
+        dobInput.classList.remove('is-invalid');
+        dobError.classList.remove('show');
+        dobError.textContent = '';
+        return true;
+    }
+
+    // Live validation on DOB change
+    dobInput.addEventListener('change', validateDOB);
+    dobInput.addEventListener('input', validateDOB);
+
+    // Helper: validate a required select field
+    function requireSelect(id, msg) {
+        const el = document.getElementById(id);
+        if (!el.value) {
+            el.classList.add('is-invalid');
+            // Add feedback once
+            if (!el.parentNode.querySelector('.invalid-feedback')) {
+                const fb = document.createElement('div');
+                fb.className = 'invalid-feedback';
+                fb.textContent = msg;
+                el.parentNode.appendChild(fb);
+            }
+            el.focus();
+            return false;
+        }
+        el.classList.remove('is-invalid');
+        return true;
+    }
+
+    window.obNext = function() {
+        if (current === 0) {
+            // Validate name
+            const nameInput = document.getElementById('id_name');
+            if (!nameInput.value.trim()) {
+                nameInput.classList.add('is-invalid');
+                if (!nameInput.parentNode.querySelector('.invalid-feedback')) {
+                    const fb = document.createElement('div');
+                    fb.className = 'invalid-feedback';
+                    fb.textContent = 'Please enter your child\'s name.';
+                    nameInput.parentNode.appendChild(fb);
+                }
+                nameInput.focus();
+                return;
+            }
+            nameInput.classList.remove('is-invalid');
+
+            // Validate DOB (required + range)
+            if (!dobInput.value) {
+                dobInput.classList.add('is-invalid');
+                dobError.textContent = 'Please enter your child\'s date of birth.';
+                dobError.classList.add('show');
+                dobInput.focus();
+                return;
+            }
+            if (!validateDOB()) {
+                dobInput.focus();
+                return;
+            }
+        }
+        if (current === 1) {
+            // Validate all medical selects
+            if (!requireSelect('id_sex', 'Please select sex assigned at birth.')) return;
+            if (!requireSelect('id_jaundice', 'Please select a jaundice option.')) return;
+            if (!requireSelect('id_family_asd', 'Please select a family ASD option.')) return;
+        }
+        if (current < panels.length - 1) showStep(current + 1);
+    };
+
+    window.obBack = function() {
+        if (current > 0) showStep(current - 1);
+    };
+
+    // Real-time name validation clear
+    document.getElementById('id_name').addEventListener('input', function() {
+        if (this.value.trim()) this.classList.remove('is-invalid');
+    });
+})();
+</script>
+{% endblock caregiver_content %}

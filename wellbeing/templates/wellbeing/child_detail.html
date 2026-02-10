@@ -1,0 +1,241 @@
+{% extends 'layouts/caregiver_base.html' %}
+
+{% block caregiver_title %}{{ child.name }}'s Profile — AutiBloom{% endblock %}
+
+{% block caregiver_extra_css %}
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --teal:   #14b8a6;
+  --teal-d: #0f766e;
+  --teal-l: #ccfbf1;
+  --night:  #0f172a;
+  --soft:   #f8fafc;
+  --border: rgba(0,0,0,.08);
+  --indigo: #6366f1;
+}
+body { font-family: 'Inter', sans-serif; background: var(--soft); color: var(--night); }
+h1,h2,h3,h4 { font-family: 'Plus Jakarta Sans', sans-serif; }
+
+.page-header {
+  background: #fff; padding: 2rem 0;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 2rem;
+}
+.page-header h2 { font-weight: 800; font-size: 2rem; color: var(--night); margin: 0; }
+.back-link {
+  font-size: .85rem; font-weight: 600; color: #64748b; text-decoration: none;
+  display: inline-flex; align-items: center; gap: .4rem; transition: color .2s;
+  margin-bottom: 1rem;
+}
+.back-link:hover { color: var(--night); }
+
+.detail-card {
+  background: #fff; border-radius: 16px; border: 1px solid var(--border);
+  box-shadow: 0 4px 12px rgba(0,0,0,.03); padding: 1.5rem; margin-bottom: 1.5rem;
+}
+.detail-card h3 {
+  font-size: 1.25rem; font-weight: 700; display: flex; align-items: center; gap: .5rem;
+  margin-bottom: 1.25rem; padding-bottom: .75rem; border-bottom: 1px solid #f1f5f9;
+}
+.detail-card h3 i { color: var(--teal); }
+
+.info-grid {
+  display: grid; grid-template-columns: 1fr; gap: 1rem;
+}
+@media (min-width: 768px) {
+  .info-grid { grid-template-columns: 1fr 1fr; }
+}
+.info-item { margin-bottom: .5rem; }
+.info-label { font-size: .75rem; font-weight: 700; text-transform: uppercase; color: #64748b; letter-spacing: .05em; }
+.info-val { font-size: .95rem; font-weight: 500; color: var(--night); }
+
+.alert-warning-custom {
+  background: #fffbeb; border: 1px solid #fcd34d; border-radius: 12px;
+  padding: 1rem 1.25rem; display: flex; align-items: flex-start; gap: .75rem;
+  color: #b45309; margin-bottom: 1.5rem; font-size: .9rem;
+}
+.alert-warning-custom i { font-size: 1.25rem; line-height: 1; }
+
+.table-responsive { border-radius: 12px; border: 1px solid #e2e8f0; overflow: hidden; }
+.table { margin-bottom: 0; font-size: .9rem; }
+.table thead { background: #f8fafc; }
+.table th { font-weight: 600; color: #475569; text-transform: uppercase; font-size: .75rem; letter-spacing: .05em; padding: 1rem; border-bottom: 1px solid #e2e8f0; }
+.table td { padding: 1rem; vertical-align: middle; border-bottom: 1px solid #e2e8f0; }
+.table tbody tr:last-child td { border-bottom: none; }
+.table tbody tr:hover { background: #fbfbfc; }
+
+.status-badge {
+  display: inline-flex; align-items: center; gap: .3rem; font-size: .7rem; font-weight: 700;
+  padding: .2rem .6rem; border-radius: 100px; text-transform: uppercase; letter-spacing: .05em;
+}
+.status-badge.draft { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; }
+.status-badge.submitted { background: var(--teal-l); color: var(--teal-d); border: 1px solid rgba(20,184,166,.3); }
+
+.score-pill {
+    display: inline-block; font-weight: 800; font-size: .9rem; padding: .2rem .6rem; border-radius: 8px; text-align: center;
+}
+.score-pill.score-high { background: #dcfce7; color: #16a34a; }
+.score-pill.score-mid { background: #fef08a; color: #b45309; }
+.score-pill.score-low { background: #fee2e2; color: #dc2626; }
+.score-pill.score-null { background: #f1f5f9; color: #94a3b8; font-weight: normal; }
+
+.btn-start-entry {
+  display: inline-flex; align-items: center; gap: .5rem;
+  background: var(--night); color: #fff; font-weight: 600; font-size: .9rem;
+  padding: .6rem 1.25rem; border-radius: 10px; text-decoration: none; transition: background .2s;
+}
+.btn-start-entry:hover { background: #1e293b; color: #fff; }
+
+.empty-state { text-align: center; padding: 3rem 1rem; color: #64748b; }
+.empty-state i { font-size: 2.5rem; color: #cbd5e1; margin-bottom: 1rem; display: block; }
+</style>
+{% endblock caregiver_extra_css %}
+
+{% block caregiver_content %}
+
+<!-- Header -->
+<div class="page-header">
+  <div class="container">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mt-3">
+      <h2>{{ child.name }}</h2>
+      <a href="{% url 'wellbeing_child_edit' child.id %}" class="btn btn-outline-secondary btn-sm" style="border-radius: 8px; font-weight: 600;">
+        <i class="bi bi-pencil-square me-1"></i>Edit Profile
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="container pb-5">
+
+  <div class="row">
+    <!-- Left Col: Profile Details -->
+    <div class="col-lg-4">
+      <div class="detail-card">
+        <h3><i class="bi bi-person-vcard"></i> Demographics</h3>
+        
+        {% if not child.sex or not child.jaundice or not child.family_asd %}
+        <div class="alert-warning-custom">
+          <i class="bi bi-exclamation-triangle-fill"></i>
+          <div>
+            <strong>Profile Incomplete</strong><br>
+            Missing demographics. Data export is unavailable until updated.
+          </div>
+        </div>
+        {% endif %}
+
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">Date of Birth</div>
+            <div class="info-val">{{ child.date_of_birth|default:"Unknown" }}</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">Sex</div>
+            <div class="info-val">{{ child.get_sex_display|default:"-" }}</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">Jaundice at Birth</div>
+            <div class="info-val">{{ child.get_jaundice_display|default:"-" }}</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">Family History (ASD)</div>
+            <div class="info-val">{{ child.get_family_asd_display|default:"-" }}</div>
+          </div>
+        </div>
+        
+        <div class="info-item mt-3 pt-3 border-top">
+          <div class="info-label">Medical Notes</div>
+          <div class="info-val text-muted" style="font-size: .85rem; line-height: 1.5;">
+            {{ child.notes|default:"No additional notes provided." }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Col: Weekly Tracker -->
+    <div class="col-lg-8">
+      <div class="detail-card">
+        <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+          <h3 class="mb-0 pb-0 border-0"><i class="bi bi-calendar2-week"></i> Weekly Tracker</h3>
+          <a href="{% url 'wellbeing_entry_start' child.id %}" class="btn-start-entry">
+            <i class="bi bi-plus-circle"></i> New Check-in
+          </a>
+        </div>
+
+        {% if entries %}
+        <div class="table-responsive">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Week Start</th>
+                <th>Status</th>
+                <th class="text-center">Score</th>
+                <th>Date</th>
+                <th class="text-end">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for entry in entries %}
+              <tr>
+                <td class="fw-semibold">{{ entry.week_start|date:"M d, Y" }}</td>
+                <td>
+                  {% if entry.status == 'SUBMITTED' %}
+                    <span class="status-badge submitted"><i class="bi bi-check-circle-fill"></i> Submitted</span>
+                  {% else %}
+                    <span class="status-badge draft"><i class="bi bi-clock"></i> Draft</span>
+                  {% endif %}
+                </td>
+                <td class="text-center">
+                  {% if entry.overall_score is not None %}
+                    {% if entry.overall_score >= 3 %}
+                      <span class="score-pill score-high">{{ entry.overall_score|floatformat:1 }}</span>
+                    {% elif entry.overall_score >= 1.5 %}
+                      <span class="score-pill score-mid">{{ entry.overall_score|floatformat:1 }}</span>
+                    {% else %}
+                      <span class="score-pill score-low">{{ entry.overall_score|floatformat:1 }}</span>
+                    {% endif %}
+                  {% else %}
+                    <span class="score-pill score-null">—</span>
+                  {% endif %}
+                </td>
+                <td class="text-muted" style="font-size:.85rem;">
+                  {{ entry.submitted_at|date:"M d, Y"|default:"-" }}
+                </td>
+                <td class="text-end">
+                  {% if entry.status == 'DRAFT' %}
+                  <a href="{% url 'wellbeing_entry_edit' entry.id %}" class="btn btn-sm btn-outline-primary" style="border-radius:6px; font-weight:600;">
+                      <i class="bi bi-pencil-square"></i> Resume
+                  </a>
+                  {% else %}
+                  <div class="btn-group">
+                    <a href="{% url 'wellbeing_entry_report' entry.id %}" class="btn btn-sm btn-outline-success" style="font-weight:600;" title="View Report">
+                        <i class="bi bi-file-earmark-bar-graph"></i> Report
+                    </a>
+                  </div>
+                  {% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        <div class="mt-3 text-end">
+          <a href="{% url 'wellbeing_child_report' child.id %}" class="btn btn-link text-decoration-none fw-semibold" style="font-size:.85rem;">
+            View Full Growth History &rarr;
+          </a>
+        </div>
+        {% else %}
+        <div class="empty-state">
+          <i class="bi bi-clipboard-x"></i>
+          <h4 style="font-weight:700; color:var(--night); margin-bottom:.5rem;">No Check-ins Yet</h4>
+          <p>Start your first weekly check-in to track {{ child.name }}'s wellbeing journey.</p>
+        </div>
+        {% endif %}
+
+      </div>
+    </div>
+  </div>
+
+</div>
+
+{% endblock caregiver_content %}

@@ -1,0 +1,235 @@
+{% extends 'layouts/caregiver_base.html' %}
+
+{% block caregiver_title %}My Children — AutiBloom{% endblock %}
+{% block caregiver_topbar_title %}My Children{% endblock %}
+
+{% block caregiver_extra_css %}
+<style>
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+    }
+    .page-title {
+        font-weight: 800;
+        color: #0f172a;
+        margin-bottom: 0;
+        letter-spacing: -0.02em;
+    }
+    .btn-add-child {
+        background: linear-gradient(135deg, #0d9488, #14b8a6);
+        color: #fff;
+        border: none;
+        border-radius: 0.75rem;
+        padding: 0.6rem 1.25rem;
+        font-weight: 600;
+        font-size: 0.95rem;
+        transition: all 0.25s;
+        box-shadow: 0 4px 12px rgba(13,148,136,0.2);
+        text-decoration: none;
+    }
+    .btn-add-child:hover {
+        background: linear-gradient(135deg, #0f766e, #0d9488);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(13,148,136,0.3);
+        color: #fff;
+    }
+
+    .children-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .child-card {
+        background: #fff;
+        border-radius: 1.25rem;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.02);
+        padding: 2rem;
+        text-align: center;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border: 1px solid rgba(226, 232, 240, 0.8);
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+    .child-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 30px rgba(0,0,0,0.08), 0 4px 6px rgba(0,0,0,0.04);
+        border-color: rgba(20, 184, 166, 0.3);
+    }
+
+    /* Decorative background shape */
+    .child-card::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 100px;
+        background: linear-gradient(135deg, rgba(20,184,166,0.1), rgba(13,148,136,0.05));
+        border-radius: 1.25rem 1.25rem 0 0;
+        z-index: 0;
+    }
+
+    .avatar-wrapper {
+        position: relative;
+        z-index: 1;
+        width: 100px;
+        height: 100px;
+        margin: 0 auto 1.25rem;
+        border-radius: 50%;
+        padding: 4px;
+        background: #fff;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    .child-avatar {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        object-fit: cover;
+        background: #f8fafc;
+    }
+    .avatar-placeholder {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #14b8a6, #0d9488);
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.5rem;
+        font-weight: 700;
+        text-transform: uppercase;
+    }
+
+    .child-name {
+        font-size: 1.25rem;
+        font-weight: 800;
+        color: #0f172a;
+        margin-bottom: 0.25rem;
+        position: relative;
+        z-index: 1;
+    }
+    .child-meta {
+        font-size: 0.9rem;
+        color: #64748b;
+        margin-bottom: 1.5rem;
+        position: relative;
+        z-index: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        flex-grow: 1;
+    }
+
+    .card-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        position: relative;
+        z-index: 1;
+        margin-top: auto;
+    }
+    .btn-dashboard {
+        background: #f1f5f9;
+        color: #0f172a;
+        border: none;
+        border-radius: 0.75rem;
+        padding: 0.6rem;
+        font-weight: 600;
+        transition: all 0.2s;
+        text-decoration: none;
+    }
+    .btn-dashboard:hover {
+        background: #e2e8f0;
+        color: #0f172a;
+    }
+    .btn-edit {
+        background: transparent;
+        color: #64748b;
+        border: 1px solid #cbd5e1;
+        border-radius: 0.75rem;
+        padding: 0.6rem;
+        font-weight: 600;
+        transition: all 0.2s;
+        text-decoration: none;
+    }
+    .btn-edit:hover {
+        background: #f8fafc;
+        color: #334155;
+        border-color: #94a3b8;
+    }
+
+    /* Empty state */
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        background: #fff;
+        border-radius: 1.25rem;
+        border: 2px dashed #e2e8f0;
+    }
+    .empty-icon {
+        font-size: 3rem;
+        color: #94a3b8;
+        margin-bottom: 1rem;
+    }
+</style>
+{% endblock %}
+
+{% block caregiver_content %}
+<div class="page-header">
+    <h2 class="page-title">My Children</h2>
+    <a href="{% url 'wellbeing_child_create' %}" class="btn-add-child">
+        <i class="bi bi-plus-lg me-1"></i> Add Child
+    </a>
+</div>
+
+{% if children %}
+<div class="children-grid">
+    {% for child in children %}
+    <div class="child-card">
+        <div class="avatar-wrapper">
+            {% if child.profile_picture %}
+                <img src="{{ child.profile_picture.url }}" alt="{{ child.name }}" class="child-avatar">
+            {% else %}
+                <div class="avatar-placeholder">
+                    {{ child.name|make_list|first }}
+                </div>
+            {% endif %}
+        </div>
+        
+        <h3 class="child-name">{{ child.name }}</h3>
+        <div class="child-meta">
+            <i class="bi bi-calendar-heart" style="color: #14b8a6;"></i>
+            {% if child.date_of_birth %}
+                {{ child.date_of_birth|date:"M d, Y" }}
+            {% else %}
+                DOB Unknown
+            {% endif %}
+        </div>
+
+        <div class="card-actions">
+            <a href="{% url 'wellbeing_child_detail' child.id %}" class="btn btn-dashboard">
+                <i class="bi bi-speedometer2 me-1" style="color: #14b8a6;"></i> View Dashboard
+            </a>
+            <a href="{% url 'wellbeing_child_edit' child.id %}" class="btn btn-edit">
+                <i class="bi bi-pencil-square me-1"></i> Edit Profile
+            </a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="empty-state">
+    <div class="empty-icon"><i class="bi bi-people"></i></div>
+    <h4>No Profiles Found</h4>
+    <p class="text-muted mb-4">You haven't added any child profiles to your account yet.</p>
+    <a href="{% url 'wellbeing_child_create' %}" class="btn-add-child d-inline-block">
+        <i class="bi bi-plus-lg me-1"></i> Add Your First Child
+    </a>
+</div>
+{% endif %}
+{% endblock %}
