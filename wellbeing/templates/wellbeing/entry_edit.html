@@ -1,0 +1,460 @@
+{% extends 'layouts/caregiver_base.html' %}
+{% block caregiver_title %}Weekly Check-In — AutiBloom{% endblock %}
+
+{% block caregiver_extra_css %}
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --teal:   #14b8a6;
+  --teal-d: #0f766e;
+  --night:  #0f172a;
+  --slate:  #64748b;
+  --soft:   #f8fafc;
+  --border: #e2e8f0;
+}
+body { font-family: 'Inter', sans-serif; background: var(--soft); }
+
+/* ── Stage Header ── */
+.stage-header {
+  background: linear-gradient(135deg, var(--night) 0%, #1e293b 100%);
+  padding: 2.25rem 0 2rem; position: relative; overflow: hidden;
+}
+.stage-header::before {
+  content:''; position:absolute; inset:0; pointer-events:none;
+  background: radial-gradient(ellipse 70% 120% at 90% 50%, rgba(20,184,166,.18) 0%, transparent 70%);
+}
+.stage-chip {
+  display:inline-flex; align-items:center; gap:.4rem;
+  font-size:.72rem; font-weight:700; letter-spacing:.12em; text-transform:uppercase;
+  color:var(--teal); background:rgba(20,184,166,.12); border:1px solid rgba(20,184,166,.25);
+  border-radius:100px; padding:.3rem .9rem; margin-bottom:.85rem;
+}
+.stage-title {
+  font-family:'Plus Jakarta Sans',sans-serif;
+  font-size:clamp(1.5rem,3vw,2.1rem); font-weight:800; letter-spacing:-.03em;
+  color:#fff; margin:0;
+}
+.stage-meta { color:#94a3b8; font-size:.9rem; margin-top:.4rem; }
+.stage-meta strong { color:#e2e8f0; }
+.submitted-banner {
+  display:inline-flex; align-items:center; gap:.5rem;
+  background:rgba(20,184,166,.15); border:1px solid rgba(20,184,166,.3);
+  border-radius:100px; padding:.35rem 1rem; margin-top:.85rem;
+  color:var(--teal); font-size:.82rem; font-weight:700;
+}
+
+/* ── Progress Bar ── */
+.progress-zone {
+  background:#fff; border-bottom:1px solid var(--border); padding:1rem 0;
+}
+.stepper-wrap { display:flex; align-items:center; gap:1rem; }
+.stepper-label { font-family:'Plus Jakarta Sans',sans-serif; font-size:.82rem; font-weight:700; color:var(--night); white-space:nowrap; }
+.stepper-track { flex:1; display:flex; gap:4px; height:7px; }
+.seg { flex:1; border-radius:10px; background:#e2e8f0; transition:background .4s; }
+.seg.filled  { background:var(--teal); }
+.seg.partial { background:rgba(20,184,166,.4); }
+.stepper-pct { font-family:'Plus Jakarta Sans',sans-serif; font-size:.9rem; font-weight:800; color:var(--teal); white-space:nowrap; }
+
+/* ── Body ── */
+.body-zone { padding:2.5rem 0 3rem; }
+
+/* ── Wizard Step ── */
+.q-step { display:none; }
+.q-step.active { display:block; animation:fadeSlide .35s ease both; }
+@keyframes fadeSlide {
+  from { opacity:0; transform:translateY(14px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+
+/* ── Question Card ── */
+.q-card {
+  background:#fff; border:1px solid rgba(0,0,0,.05); border-radius:24px;
+  padding:2.5rem; box-shadow:0 10px 30px rgba(0,0,0,.04), 0 2px 6px rgba(0,0,0,.02);
+  max-width:780px; margin:0 auto;
+}
+.q-domain-chip {
+  display:inline-flex; align-items:center; gap:.4rem;
+  font-size:.7rem; font-weight:700; letter-spacing:.1em; text-transform:uppercase;
+  border-radius:100px; padding:.28rem .85rem; margin-bottom:1.25rem;
+}
+.chip-comm { background:#ede9fe; color:#7c3aed; }
+.chip-rout { background:#dcfce7; color:#16a34a; }
+.chip-emot { background:#fef3c7; color:#b45309; }
+.chip-sens { background:#dbeafe; color:#1d4ed8; }
+
+.q-code { font-size:.8rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--slate); margin-bottom:.65rem; }
+.q-text { font-family:'Plus Jakarta Sans',sans-serif; font-size:1.25rem; font-weight:700; color:var(--night); line-height:1.45; margin-bottom:2rem; }
+
+/* ── Slider Section ── */
+.slider-section {
+  background:var(--soft); border:1px solid var(--border);
+  border-radius:18px; padding:1.75rem; margin-bottom:1rem;
+}
+.slider-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:1.25rem; }
+.slider-rating-label { font-size:.8rem; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--slate); }
+.score-badge {
+  display:inline-flex; align-items:center; gap:.45rem;
+  padding:.35rem 1rem; border-radius:100px;
+  font-family:'Plus Jakarta Sans',sans-serif; font-size:.85rem; font-weight:800;
+  transition:all .25s;
+}
+.badge-unset  { background:#f1f5f9; color:var(--slate); border:1.5px solid var(--border); }
+.badge-danger { background:#fef2f2; color:#b91c1c; border:1.5px solid #fecaca; }
+.badge-warn   { background:#fffbeb; color:#92400e; border:1.5px solid #fde68a; }
+.badge-good   { background:#f0fdf4; color:#166534; border:1.5px solid #bbf7d0; }
+
+.visual-slider { width:100%; margin-bottom:1rem; cursor:pointer; accent-color:var(--teal); height:2px; }
+.visual-slider::-webkit-slider-runnable-track { height:8px; border-radius:10px; background:#e2e8f0; }
+.visual-slider::-webkit-slider-thumb { width:24px; height:24px; border-radius:50%; background:var(--teal); border:3px solid #fff; box-shadow:0 2px 8px rgba(20,184,166,.4); }
+.visual-slider.is-unset { opacity:.55; }
+.visual-slider.is-set::-webkit-slider-thumb { box-shadow:0 2px 14px rgba(20,184,166,.6); }
+
+.slider-scale { display:flex; justify-content:space-between; font-size:.75rem; font-weight:600; color:#94a3b8; }
+
+.clear-btn {
+  background:none; border:none; cursor:pointer;
+  display:inline-flex; align-items:center; gap:.35rem;
+  font-size:.82rem; font-weight:600; color:#ef4444;
+  padding:.35rem .75rem; border-radius:100px; transition:background .2s;
+}
+.clear-btn:hover { background:#fef2f2; }
+.clear-btn[hidden] { display:none !important; }
+
+.comment-label { font-size:.78rem; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--slate); display:block; margin-bottom:.4rem; }
+textarea.comment-area {
+  width:100%; border:1.5px solid var(--border); border-radius:14px;
+  padding:.85rem 1rem; font-family:'Inter',sans-serif; font-size:.92rem;
+  color:var(--night); background:#fff; resize:vertical;
+  transition:border-color .2s;
+}
+textarea.comment-area:focus { outline:none; border-color:var(--teal); box-shadow:0 0 0 3px rgba(20,184,166,.1); }
+
+/* ── Inline Nav (replaces floating dock) ── */
+.card-nav {
+  display:flex; justify-content:space-between; align-items:center;
+  margin-top:2rem; padding-top:1.5rem; border-top:1px solid #f1f5f9; gap:.75rem;
+}
+.card-nav-left, .card-nav-right { display:flex; gap:.75rem; }
+
+.nav-btn {
+  display:inline-flex; align-items:center; gap:.5rem;
+  font-family:'Inter',sans-serif; font-weight:700; font-size:.9rem;
+  border-radius:12px; padding:.7rem 1.4rem; cursor:pointer;
+  border:none; transition:all .25s; text-decoration:none; white-space:nowrap;
+}
+.nav-prev   { background:#f1f5f9; color:#475569; }
+.nav-prev:hover   { background:#e2e8f0; color:#1e293b; transform:translateX(-2px); }
+.nav-next   { background:var(--night); color:#fff; }
+.nav-next:hover   { background:#1e293b; transform:translateX(2px); }
+.nav-submit { background:linear-gradient(135deg,#10b981,#059669); color:#fff; box-shadow:0 4px 16px rgba(16,185,129,.3); }
+.nav-submit:hover { transform:translateY(-2px); box-shadow:0 8px 24px rgba(16,185,129,.4); }
+.nav-save   { background:transparent; color:#94a3b8; border:1.5px solid var(--border); font-size:.82rem; padding:.55rem 1rem; }
+.nav-save:hover   { border-color:#cbd5e1; color:#475569; }
+
+/* ── Read-Only Cards ── */
+.ro-card {
+  background:#fff; border:1px solid rgba(0,0,0,.05); border-radius:20px;
+  padding:1.5rem; box-shadow:0 4px 14px rgba(0,0,0,.04);
+  transition:transform .25s, box-shadow .25s;
+}
+.ro-card:hover { transform:translateY(-4px); box-shadow:0 10px 30px rgba(0,0,0,.07); }
+.ro-code { font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.1em; color:var(--slate); margin-bottom:.25rem; }
+.ro-question { font-family:'Plus Jakarta Sans',sans-serif; font-size:.98rem; font-weight:700; color:var(--night); margin-bottom:1rem; line-height:1.4; }
+.ro-score-bar { height:8px; border-radius:10px; background:#e2e8f0; margin-bottom:.5rem; overflow:hidden; }
+.ro-score-fill { height:100%; border-radius:10px; transition:width 1s cubic-bezier(.34,1,.64,1); }
+.ro-label { display:flex; justify-content:space-between; align-items:center; }
+.risk-pill { display:inline-flex; align-items:center; gap:.35rem; font-size:.75rem; font-weight:700; padding:.28rem .75rem; border-radius:100px; }
+.risk-pill-red   { background:#fef2f2; color:#b91c1c; border:1px solid #fecaca; }
+.risk-pill-green { background:#f0fdf4; color:#166534; border:1px solid #bbf7d0; }
+.ro-comment { background:var(--soft); border-radius:10px; padding:.75rem 1rem; font-size:.88rem; color:var(--slate); font-style:italic; margin-top:.75rem; }
+.btn-export {
+  display:inline-flex; align-items:center; gap:.6rem;
+  font-family:'Inter',sans-serif; font-weight:700; font-size:.9rem;
+  background:linear-gradient(135deg,var(--teal),var(--teal-d)); color:#fff;
+  border:none; border-radius:14px; padding:.85rem 2rem; text-decoration:none;
+  box-shadow:0 6px 20px rgba(20,184,166,.4); transition:all .3s;
+}
+.btn-export:hover { color:#fff; transform:translateY(-3px); box-shadow:0 10px 30px rgba(20,184,166,.5); }
+</style>
+{% endblock caregiver_extra_css %}
+
+{% block caregiver_content %}
+
+{% with total_q=formset.total_form_count %}
+
+<!-- Stage Header -->
+<header class="stage-header">
+  <div class="container px-3 px-lg-4 position-relative">
+    <div class="stage-chip"><i class="bi bi-clipboard2-heart-fill"></i> Weekly Check-In</div>
+    <h1 class="stage-title">{{ entry.child.name }}'s Assessment</h1>
+    <div class="stage-meta">Week of <strong>{{ entry.week_start|date:"M d" }}</strong> – <strong>{{ entry.week_end|date:"M d, Y" }}</strong></div>
+    {% if entry.status == 'SUBMITTED' %}
+    <div class="submitted-banner"><i class="bi bi-patch-check-fill"></i> Submitted on {{ entry.submitted_at|date:"M d, Y" }}</div>
+    {% endif %}
+  </div>
+</header>
+
+<!-- Progress Stepper (Draft only) -->
+{% if entry.status == 'DRAFT' %}
+<div class="progress-zone">
+  <div class="container px-3 px-lg-4">
+    <div class="stepper-wrap">
+      <span class="stepper-label">Step <span id="stepCurrent">1</span> / {{ total_q }}</span>
+      <div class="stepper-track" id="stepTrack">
+        {% for form in formset %}<div class="seg" id="seg-{{ forloop.counter0 }}"></div>{% endfor %}
+      </div>
+      <span class="stepper-pct"><span id="stepPct">0</span>%</span>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- Body -->
+<div class="body-zone">
+  <div class="container px-3 px-lg-4">
+
+    {% if entry.status == 'DRAFT' %}
+    <!-- ═══ DRAFT: WIZARD ═══ -->
+    <form method="post" id="wizardForm">
+      {% csrf_token %}
+      {{ formset.management_form }}
+
+      {% for form in formset %}
+      <div class="q-step {% if forloop.first %}active{% endif %}" id="step-{{ forloop.counter0 }}">
+        <div class="q-card">
+
+          <!-- Domain chip -->
+          {% with domain=form.instance.question.domain %}
+          <span class="q-domain-chip {% if domain == 'communication' %}chip-comm{% elif domain == 'routines' %}chip-rout{% elif domain == 'emotional_responses' %}chip-emot{% else %}chip-sens{% endif %}">
+            <i class="bi {% if domain == 'communication' %}bi-chat-dots-fill{% elif domain == 'routines' %}bi-arrow-repeat{% elif domain == 'emotional_responses' %}bi-emoji-expressionless-fill{% else %}bi-soundwave{% endif %}"></i>
+            {% if domain == 'communication' %}Communication{% elif domain == 'routines' %}Routines{% elif domain == 'emotional_responses' %}Emotional Responses{% else %}Sensory Behaviors{% endif %}
+          </span>
+          {% endwith %}
+
+          <div class="q-code">{{ form.instance.question.code }}</div>
+          <p class="q-text">{{ form.instance.question.text }}</p>
+
+          {{ form.id }}
+
+          <!-- Slider -->
+          <div class="slider-section">
+            <div class="slider-top">
+              <span class="slider-rating-label">Your Rating</span>
+              <div class="d-flex align-items-center gap-2">
+                <span class="score-badge badge-unset" id="badge-{{ form.slider_score.id_for_label }}">Not Answered</span>
+                <button type="button" class="clear-btn" id="clear-{{ form.slider_score.id_for_label }}"
+                        data-hidden-id="{{ form.slider_score.id_for_label }}"
+                        data-touched-id="{{ form.touched.id_for_label }}" hidden>
+                  <i class="bi bi-x-circle-fill"></i> Clear
+                </button>
+              </div>
+            </div>
+            {{ form.slider_score }}
+            {{ form.touched }}
+            <input type="range" class="visual-slider is-unset" min="0" max="4" step="1"
+                   id="slider-{{ form.slider_score.id_for_label }}"
+                   data-hidden-id="{{ form.slider_score.id_for_label }}"
+                   data-touched-id="{{ form.touched.id_for_label }}"
+                   value="{% if form.instance.slider_score is not None %}{{ form.instance.slider_score }}{% else %}2{% endif %}">
+            <div class="slider-scale">
+              <span>Never<br><small style="color:#cbd5e1">0</small></span>
+              <span style="text-align:center">Rarely<br><small style="color:#cbd5e1">1</small></span>
+              <span style="text-align:center">Sometimes<br><small style="color:#cbd5e1">2</small></span>
+              <span style="text-align:center">Often<br><small style="color:#cbd5e1">3</small></span>
+              <span style="text-align:right">Always<br><small style="color:#cbd5e1">4</small></span>
+            </div>
+          </div>
+
+          <!-- Notes -->
+          <label class="comment-label">Notes (Optional)</label>
+          {{ form.comment }}
+          {{ form.non_field_errors }}
+          {{ form.slider_score.errors }}
+
+          <!-- Inline nav -->
+          <div class="card-nav">
+            <div class="card-nav-left">
+              {% if not forloop.first %}
+              <button type="button" class="nav-btn nav-prev" onclick="navigate(-1)">
+                <i class="bi bi-arrow-left"></i> Back
+              </button>
+              {% endif %}
+            </div>
+            <div class="card-nav-right">
+              <button type="button" class="nav-btn nav-save" onclick="saveProgress()">
+                <i class="bi bi-floppy"></i> Save
+              </button>
+              {% if forloop.last %}
+              <button type="button" class="nav-btn nav-submit" onclick="submitEntry()">
+                <i class="bi bi-send-fill"></i> Submit Week
+              </button>
+              {% else %}
+              <button type="button" class="nav-btn nav-next" onclick="navigate(1)">
+                Next <i class="bi bi-arrow-right"></i>
+              </button>
+              {% endif %}
+            </div>
+          </div>
+
+        </div><!-- /q-card -->
+      </div><!-- /q-step -->
+      {% endfor %}
+
+    </form>
+
+    {% else %}
+    <!-- ═══ SUBMITTED: READ-ONLY ═══ -->
+    <div class="row g-3 mt-4" style="max-width:900px;margin:0 auto;">
+      {% for answer in entry.answers.all %}
+      <div class="col-md-6">
+        <div class="ro-card">
+          <div class="ro-code">{{ answer.question.code }}</div>
+          <p class="ro-question">{{ answer.question.text }}</p>
+          <div class="ro-score-bar">
+            <div class="ro-score-fill" style="width:{{ answer.slider_score|default:0 }}0%;background:{% if answer.slider_score <= 1 %}#ef4444{% elif answer.slider_score == 2 %}#f59e0b{% else %}#22c55e{% endif %}"></div>
+          </div>
+          <div class="ro-label">
+            <span style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:.9rem;color:var(--night);">
+              {{ answer.slider_score }} / 4 — {% if answer.slider_score == 0 %}Never{% elif answer.slider_score == 1 %}Rarely{% elif answer.slider_score == 2 %}Sometimes{% elif answer.slider_score == 3 %}Often{% else %}Always{% endif %}
+            </span>
+            {% if answer.binary_flag == 1 %}
+            <span class="risk-pill risk-pill-red"><i class="bi bi-exclamation-triangle-fill"></i> Risk Flag</span>
+            {% else %}
+            <span class="risk-pill risk-pill-green"><i class="bi bi-check-circle-fill"></i> Typical</span>
+            {% endif %}
+          </div>
+          {% if answer.comment %}<div class="ro-comment">"{{ answer.comment }}"</div>{% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <div class="text-center mt-4 d-flex gap-3 justify-content-center flex-wrap">
+      <a href="{% url 'wellbeing_child_report' entry.child.id %}" class="btn-export" style="background:linear-gradient(135deg,#8b5cf6,#6d28d9);box-shadow:0 6px 20px rgba(139,92,246,.35);">
+        <i class="bi bi-bar-chart-line-fill"></i> View Full Report
+      </a>
+      <a href="{% url 'wellbeing_dashboard' %}?child_id={{ entry.child.id }}" class="btn-export" style="background:linear-gradient(135deg,#14b8a6,#0f766e);box-shadow:0 6px 20px rgba(20,184,166,.35);">
+        <i class="bi bi-speedometer2"></i> Go to Dashboard
+      </a>
+      <a href="{% url 'wellbeing_child_detail' entry.child.id %}" class="nav-btn nav-prev" style="display:inline-flex;">
+        <i class="bi bi-arrow-left"></i> Back to Profile
+      </a>
+    </div>
+    {% endif %}
+
+  </div>
+</div>
+
+{% endwith %}
+
+<script>
+const LABELS = ["Never / Very Difficult","Rarely / Difficult","Sometimes / Neutral","Often / Easy","Always / Very Easy"];
+const TOTAL  = {{ formset.total_form_count }};
+let   current = 0;
+
+function sliderClass(v) {
+  const n = parseInt(v);
+  if (n <= 1) return 'badge-danger';
+  if (n === 2) return 'badge-warn';
+  return 'badge-good';
+}
+
+function syncUI(hidden, touched, slider, badge, clearBtn) {
+  const val   = hidden.value;
+  const isSet = val !== '' && val !== 'None';
+
+  if (isSet) {
+    const n = parseInt(val);
+    slider.value = n;
+    slider.classList.remove('is-unset'); slider.classList.add('is-set');
+    badge.className = 'score-badge ' + sliderClass(val);
+    badge.innerHTML = `<i class="bi bi-star-fill" style="font-size:.7rem"></i> ${LABELS[n]}`;
+    if (clearBtn) clearBtn.hidden = false;
+  } else {
+    slider.value = 2;
+    slider.classList.add('is-unset'); slider.classList.remove('is-set');
+    badge.className = 'score-badge badge-unset';
+    badge.textContent = 'Not Answered';
+    if (clearBtn) clearBtn.hidden = true;
+  }
+  updateProgress();
+}
+
+document.querySelectorAll('.visual-slider').forEach(slider => {
+  const hidId   = slider.getAttribute('data-hidden-id');
+  const touchId = slider.getAttribute('data-touched-id');
+  const hidden  = document.getElementById(hidId);
+  const touched = document.getElementById(touchId);
+  const badge   = document.getElementById('badge-' + hidId);
+  const clearBtn= document.getElementById('clear-' + hidId);
+  if (!hidden) return;
+  syncUI(hidden, touched, slider, badge, clearBtn);
+  slider.addEventListener('input', () => {
+    hidden.value = slider.value; touched.value = '1';
+    syncUI(hidden, touched, slider, badge, clearBtn);
+  });
+  if (clearBtn) clearBtn.addEventListener('click', () => {
+    hidden.value = ''; touched.value = '';
+    syncUI(hidden, touched, slider, badge, clearBtn);
+  });
+});
+
+{% if entry.status == 'DRAFT' %}
+function answeredCount() {
+  let n = 0;
+  document.querySelectorAll('.visual-slider').forEach(s => {
+    const h = document.getElementById(s.getAttribute('data-hidden-id'));
+    if (h && h.value !== '' && h.value !== 'None') n++;
+  });
+  return n;
+}
+
+function updateProgress() {
+  const answered = answeredCount();
+  const pct = Math.round((answered / TOTAL) * 100);
+  document.getElementById('stepPct').textContent = pct;
+  document.querySelectorAll('.seg').forEach((seg, i) => {
+    seg.className = 'seg' + (i < answered ? ' filled' : i === answered ? ' partial' : '');
+  });
+}
+
+function showStep(n) {
+  document.querySelectorAll('.q-step').forEach(s => s.classList.remove('active'));
+  document.getElementById('step-' + n).classList.add('active');
+  current = n;
+  document.getElementById('stepCurrent').textContent = n + 1;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function navigate(dir) { showStep(current + dir); }
+
+function saveProgress() {
+  const btn = document.createElement('button');
+  btn.type = 'submit'; btn.name = 'save_action'; btn.value = 'save';
+  btn.style.display = 'none';
+  document.getElementById('wizardForm').appendChild(btn);
+  btn.click();
+}
+
+function submitEntry() {
+  const answered = answeredCount();
+  if (answered < TOTAL) {
+    alert(`Please answer all ${TOTAL} questions.\n\nAnswered: ${answered} / ${TOTAL}`);
+    return;
+  }
+  if (!confirm("Submit this week's check-in? You won't be able to edit it after.")) return;
+  const btn = document.createElement('button');
+  btn.type = 'submit'; btn.name = 'submit_action'; btn.value = 'submit';
+  btn.style.display = 'none';
+  document.getElementById('wizardForm').appendChild(btn);
+  btn.click();
+}
+{% endif %}
+
+// Style textareas
+document.querySelectorAll('textarea').forEach(ta => {
+  ta.className = 'comment-area'; ta.rows = 2;
+  ta.placeholder = 'Optional notes for this question...';
+});
+</script>
+{% endblock caregiver_content %}
