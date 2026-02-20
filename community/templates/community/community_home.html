@@ -1,0 +1,275 @@
+{% extends 'layouts/caregiver_base.html' %}
+{% load static %}
+
+{% block caregiver_title %}Community Support{% endblock %}
+{% block caregiver_topbar_title %}Community Support{% endblock %}
+
+{% block caregiver_extra_css %}
+<link rel="stylesheet" href="{% static 'community/community.css' %}">
+<style>
+/* ── Inline Toast Notifications ── */
+.community-toast {
+  display: flex;
+  align-items: center;
+  gap: .85rem;
+  padding: 1rem 1.25rem;
+  border-radius: 14px;
+  font-size: .92rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  animation: slideIn .35s ease both;
+  position: relative;
+}
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.toast-success {
+  background: #ecfdf5;
+  border: 1.5px solid #6ee7b7;
+  color: #065f46;
+}
+.toast-error {
+  background: #fff1f2;
+  border: 1.5px solid #fca5a5;
+  color: #991b1b;
+}
+.toast-icon { font-size: 1.2rem; flex-shrink: 0; }
+.toast-close {
+  margin-left: auto;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  opacity: .6;
+  padding: 0 .25rem;
+  color: inherit;
+}
+.toast-close:hover { opacity: 1; }
+
+/* ── Profile card ── */
+.profile-card { transition: transform .2s, box-shadow .2s; }
+.profile-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,.09) !important; }
+
+/* ── Empty state ── */
+.empty-state-icon { font-size: 3rem; display: block; margin-bottom: 1rem; color: #94a3b8; }
+</style>
+{% endblock %}
+
+{% block caregiver_content %}
+<div class="container py-5">
+    
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h2 text-primary fw-bold mb-0">Community Support</h1>
+        <a href="{% url 'community_inbox' %}" class="btn btn-primary px-4 rounded-pill shadow-sm">
+            <i class="bi bi-envelope-fill me-2"></i>Inbox
+        </a>
+    </div>
+
+    <!-- ── Inline Toast Alerts ── -->
+    {% if form_success %}
+    <div class="community-toast toast-success" id="communityToast">
+        <i class="bi bi-check-circle-fill toast-icon"></i>
+        <span>{{ form_success }}</span>
+        <button class="toast-close" onclick="this.closest('.community-toast').remove()" aria-label="Dismiss">✕</button>
+    </div>
+    {% endif %}
+    {% if form_error %}
+    <div class="community-toast toast-error" id="communityToast">
+        <i class="bi bi-exclamation-triangle-fill toast-icon"></i>
+        <span>{{ form_error }}</span>
+        <button class="toast-close" onclick="this.closest('.community-toast').remove()" aria-label="Dismiss">✕</button>
+    </div>
+    {% endif %}
+
+    <!-- Safety Banner -->
+    <div class="alert bg-warning bg-opacity-10 border-0 rounded-4 d-flex align-items-center mb-4 p-3" role="alert">
+        <div class="bg-warning bg-opacity-25 rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 48px; height: 48px;">
+            <i class="bi bi-shield-check fs-4 text-warning-emphasis"></i>
+        </div>
+        <div class="text-dark">
+            <strong class="d-block text-warning-emphasis mb-1">Community Guidelines</strong>
+            <span class="small text-secondary">This space is strictly for peer support. It does not provide medical advice or diagnoses.</span>
+        </div>
+    </div>
+
+    <div class="row g-5">
+        <!-- Section A: Profile -->
+        <div class="col-lg-4">
+            <h2 class="h4 text-secondary mb-3">Your Community Profile</h2>
+            <div class="card shadow-sm border-0 rounded-4 h-100">
+                <div class="card-body p-4">
+                    <p class="text-muted small mb-4">
+                        <i class="bi bi-lock-fill text-secondary me-1"></i>
+                        Privacy note: We only use your city/postal code to show nearby caregivers.
+                    </p>
+                    
+                    <form method="post" action="{% url 'community_home' %}" id="profileForm">
+                        {% csrf_token %}
+                        
+                        <!-- Toggle -->
+                        <div class="form-check form-switch fs-5 mb-4 p-3 ps-5 bg-light rounded-3 d-flex align-items-center">
+                            {{ form.opt_in }}
+                            <label class="form-check-label ms-3 fw-bold text-dark" for="{{ form.opt_in.id_for_label }}">Participate in Community</label>
+                        </div>
+                        
+                        <div id="profile-fields" class="collapse transition-all duration-300">
+                            <div class="mb-3">
+                                <label class="form-label text-secondary fw-semibold">City <span class="text-danger">*</span></label>
+                                {{ form.city }}
+                                {% if form.city.errors %}
+                                    <div class="text-danger small mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ form.city.errors|join:", " }}</div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label text-secondary fw-semibold">Postal Code <span class="text-muted small">(Optional)</span></label>
+                                {{ form.postal_code }}
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label class="form-label text-secondary fw-semibold">Bio</label>
+                                {{ form.bio }}
+                            </div>
+                        </div>
+                        
+                        <!-- Save button with spinner -->
+                        <button type="submit" class="btn btn-primary w-100 rounded-pill" id="saveBtn">
+                            <span class="spinner-border spinner-border-sm me-2 d-none" id="saveSpinner"></span>
+                            <i class="bi bi-floppy-fill me-2" id="saveIcon"></i>Save Profile
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Profile status badge -->
+                {% if profile.opt_in and profile.city %}
+                <div class="card-footer bg-transparent border-top px-4 pb-4">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge bg-success rounded-pill px-3 py-2">
+                            <i class="bi bi-check-circle-fill me-1"></i>Active in Community
+                        </span>
+                        <span class="text-muted small">· {{ profile.city }}{% if profile.postal_code %} {{ profile.postal_code }}{% endif %}</span>
+                    </div>
+                </div>
+                {% elif profile.opt_in %}
+                <div class="card-footer bg-transparent border-top px-4 pb-4">
+                    <span class="badge bg-warning text-dark rounded-pill px-3 py-2">
+                        <i class="bi bi-exclamation-circle-fill me-1"></i>Add a city to appear in searches
+                    </span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Section B: Nearby Caregivers -->
+        <div class="col-lg-8">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2 class="h4 text-secondary mb-0">Caregivers Near You</h2>
+                {% if nearby_caregivers %}
+                <span class="badge bg-primary rounded-pill px-3">{{ nearby_caregivers|length }} found</span>
+                {% endif %}
+            </div>
+            
+            {% if not profile.opt_in %}
+                <div class="card shadow-sm border-0 rounded-4 bg-light text-center p-5">
+                    <i class="bi bi-people-fill empty-state-icon"></i>
+                    <h3 class="h5 text-secondary">Join the Community</h3>
+                    <p class="text-muted mb-0">Toggle <strong>Participate in Community</strong> on your profile and add your city to discover other caregivers nearby.</p>
+                </div>
+            {% elif not profile.city %}
+                <div class="card shadow-sm border-0 rounded-4 bg-light text-center p-5">
+                    <i class="bi bi-geo-alt empty-state-icon"></i>
+                    <h3 class="h5 text-secondary">City Required</h3>
+                    <p class="text-muted mb-0">Please add your city in your profile to see nearby caregivers.</p>
+                </div>
+            {% elif not nearby_caregivers %}
+                <div class="card shadow-sm border-0 rounded-4 bg-light text-center p-5">
+                    <i class="bi bi-search empty-state-icon"></i>
+                    <h3 class="h5 text-secondary">No one nearby yet</h3>
+                    <p class="text-muted mb-3">We couldn't find any other opted-in caregivers in <strong>{{ profile.city }}</strong> right now. Check back later!</p>
+                    <small class="text-muted">Make sure other caregivers have also opted-in with the same city name.</small>
+                </div>
+            {% else %}
+                <div class="row row-cols-1 row-cols-md-2 g-4">
+                    {% for caregiver in nearby_caregivers %}
+                        <div class="col">
+                            <div class="card h-100 shadow-sm border-0 rounded-4 profile-card">
+                                <div class="card-body p-4 text-center">
+                                    <div class="mb-3">
+                                        <div class="d-inline-flex align-items-center justify-content-center text-primary rounded-circle" style="width: 72px; height: 72px; font-size: 1.8rem; background: #e0e7ff; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15);">
+                                            {{ caregiver.user.username|make_list|first|upper }}
+                                        </div>
+                                    </div>
+                                    <h3 class="h5 text-dark mb-1 fw-bold">
+                                        {{ caregiver.user.get_full_name|default:caregiver.user.username }}
+                                    </h3>
+                                    <div class="mb-3">
+                                        <span class="badge rounded-pill bg-light text-dark border">
+                                            <i class="bi bi-geo-alt-fill text-danger me-1"></i>
+                                            {{ caregiver.city }}
+                                            {% if caregiver.postal_code %} ({{ caregiver.postal_code }}){% endif %}
+                                        </span>
+                                    </div>
+                                    <p class="text-muted small mb-0" style="min-height: 48px; line-height: 1.5; color: #64748b !important;">
+                                        {{ caregiver.bio|default:"No bio provided."|truncatechars:100 }}
+                                    </p>
+                                </div>
+                                <div class="card-footer bg-transparent border-top-0 pb-4 px-4 text-center">
+                                    <a href="{% url 'community_start_thread' caregiver.user.id %}" class="btn w-100 rounded-pill" style="background-color: #f1f5f9; color: #0f172a; font-weight: 600; border: none; transition: background-color 0.2s, color 0.2s;" onmouseover="this.style.backgroundColor='#0f172a'; this.style.color='#f8fafc';" onmouseout="this.style.backgroundColor='#f1f5f9'; this.style.color='#0f172a';">
+                                        <i class="bi bi-chat-dots-fill me-2"></i>Message
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+// Auto-dismiss toasts after 5 seconds
+document.querySelectorAll('.community-toast').forEach(el => {
+    setTimeout(() => {
+        el.style.transition = 'opacity .4s';
+        el.style.opacity = '0';
+        setTimeout(() => el.remove(), 400);
+    }, 5000);
+});
+
+// Spinner on save
+document.getElementById('profileForm')?.addEventListener('submit', () => {
+    document.getElementById('saveSpinner')?.classList.remove('d-none');
+    document.getElementById('saveIcon')?.classList.add('d-none');
+    document.getElementById('saveBtn').disabled = true;
+});
+
+// Dynamic Profile Form Logic
+document.addEventListener('DOMContentLoaded', () => {
+    const optInToggle = document.querySelector('input[name="opt_in"]');
+    const profileFields = document.getElementById('profile-fields');
+    
+    // Initialize collapse with Bootstrap
+    const bsCollapse = new bootstrap.Collapse(profileFields, { toggle: false });
+
+    const toggleFields = (immediate = false) => {
+        if (optInToggle.checked) {
+            bsCollapse.show();
+        } else {
+            bsCollapse.hide();
+        }
+    };
+
+    if (optInToggle && profileFields) {
+        // Initial state (bypass animation if needed, though bs5 collapse manages it ok)
+        if (optInToggle.checked) {
+            profileFields.classList.add('show');
+        }
+        
+        optInToggle.addEventListener('change', () => toggleFields(false));
+    }
+});
+</script>
+{% endblock caregiver_content %}

@@ -1,0 +1,186 @@
+{% extends 'layouts/caregiver_base.html' %}
+{% load static %}
+
+{% block caregiver_title %}Chat with {{ other_user.username }}{% endblock %}
+{% block caregiver_topbar_title %}Chat with {{ other_user.username }}{% endblock %}
+
+{% block caregiver_extra_css %}
+<link rel="stylesheet" href="{% static 'community/community.css' %}">
+{% endblock %}
+
+{% block caregiver_content %}
+<div class="container py-4" style="max-width: 800px;">
+    
+    <!-- Header -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+        <div class="d-flex align-items-center">
+            <a href="{% url 'community_inbox' %}" class="btn btn-link text-secondary p-0 me-3 text-decoration-none">
+                <i class="bi bi-arrow-left fs-4"></i>
+            </a>
+            <div class="d-flex align-items-center">
+                <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 40px; height: 40px; font-weight: bold;">
+                    {{ other_user.username|make_list|first|upper }}
+                </div>
+                <h1 class="h5 text-dark mb-0 fw-bold">{{ other_user.get_full_name|default:other_user.username }}</h1>
+            </div>
+        </div>
+        
+        <div>
+            <!-- Block Button Triggers Modal -->
+            <button type="button" class="btn btn-outline-danger btn-sm rounded-pill px-3 shadow-sm" data-bs-toggle="modal" data-bs-target="#blockModal">
+                <i class="bi bi-slash-circle me-1"></i> Block
+            </button>
+        </div>
+    </div>
+
+    <!-- Chat Container -->
+    <div class="card shadow-sm border-0 rounded-4">
+        <!-- Messages Area -->
+        <div class="chat-window p-4 d-flex flex-column gap-3" id="chatWindow">
+            {% for msg in msgs %}
+                <div class="d-flex {% if msg.sender == request.user %}justify-content-end{% else %}justify-content-start{% endif %}" data-msg-id="{{ msg.id }}">
+                    <div class="chat-bubble {% if msg.sender == request.user %}chat-bubble-me{% else %}chat-bubble-other{% endif %}">
+                        <div class="mb-1 text-dark">
+                            {{ msg.body|linebreaksbr }}
+                        </div>
+                        <div class="text-end d-flex justify-content-end align-items-center gap-1">
+                            <small style="font-size: 0.7rem; opacity: 0.7;">{{ msg.created_at|date:"M d, g:i a" }}</small>
+                            {% if msg.sender == request.user %}
+                                {% if msg.is_read %}
+                                <i class="bi bi-check2-all text-primary" style="font-size: 0.85rem;" title="Seen {{ msg.read_at|date:'M d, g:i a' }}"></i>
+                                {% else %}
+                                <i class="bi bi-check2 text-muted" style="font-size: 0.85rem; opacity: 0.7;" title="Delivered"></i>
+                                {% endif %}
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="m-auto text-center text-muted">
+                    <div class="bg-white rounded-pill px-4 py-2 shadow-sm d-inline-block">
+                        <small>This is the beginning of your conversation.</small>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Composer Area -->
+        <div class="composer-container p-3">
+            {% if is_blocked %}
+                <div class="alert alert-danger mb-0 d-flex justify-content-between align-items-center rounded-3 border-0">
+                    <div>
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        Messaging is disabled because this user is blocked.
+                    </div>
+                    <form method="post" action="{% url 'community_unblock_user' other_user.id %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger btn-sm rounded-pill px-3">Unblock</button>
+                    </form>
+                </div>
+            {% else %}
+                <form method="post" action="{% url 'community_thread' thread.id %}">
+                    {% csrf_token %}
+                    <div class="input-group">
+                        <textarea class="form-control rounded-start-pill ps-4 py-3 bg-light border-0 shadow-none" name="body" rows="1" placeholder="Type a message..." required maxlength="1000" style="resize: none;" id="messageInput"></textarea>
+                        <button class="btn btn-primary rounded-end-pill px-4 shadow-sm" type="submit">
+                            <i class="bi bi-send-fill fs-5"></i>
+                        </button>
+                    </div>
+                </form>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Block Confirmation Modal -->
+<div class="modal fade" id="blockModal" tabindex="-1" aria-labelledby="blockModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow rounded-4">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold" id="blockModalLabel">Block User</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-secondary">
+                Are you sure you want to block <strong>{{ other_user.username }}</strong>? You will no longer be able to exchange messages, and they will be removed from your nearby list.
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                <form method="post" action="{% url 'community_block_user' other_user.id %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger rounded-pill px-4 shadow-sm">Confirm Block</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const THREAD_ID  = {{ thread.id }};
+    const MARK_URL   = "{% url 'community_mark_read' thread.id %}";
+    const STATUS_URL = "{% url 'community_read_status' thread.id %}";
+
+    function getCsrf() {
+        return document.cookie.split('; ')
+            .find(c => c.startsWith('csrftoken='))
+            ?.split('=')[1] || '';
+    }
+
+    // ── 1. Auto-scroll to latest message ──────────────────────────────────
+    document.addEventListener("DOMContentLoaded", function() {
+        var chatWindow = document.getElementById("chatWindow");
+        chatWindow.scrollTop = chatWindow.scrollHeight;
+
+        // Dynamic textarea resizing
+        var tx = document.getElementById("messageInput");
+        if (tx) {
+            tx.setAttribute("style", "height:" + tx.scrollHeight + "px;overflow-y:hidden;resize:none;");
+            tx.addEventListener("input", function() {
+                this.style.height = "auto";
+                this.style.height = (this.scrollHeight) + "px";
+            }, false);
+        }
+
+        // ── 2. Mark messages read immediately (recipient side) ─────────────
+        fetch(MARK_URL, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': getCsrf() },
+        }).catch(() => {});  // fire-and-forget, silent fail
+
+        // ── 3. Poll for read status every 5s (sender side) ────────────────
+        let knownReadIds = new Set(
+            [...document.querySelectorAll('.bi-check2-all')]
+                .map(el => el.closest('[data-msg-id]')?.dataset.msgId)
+                .filter(Boolean)
+                .map(Number)
+        );
+
+        function pollReadStatus() {
+            if (document.hidden) return;  // skip if tab not visible
+            fetch(STATUS_URL)
+                .then(r => r.json())
+                .then(data => {
+                    const ids = data.read_message_ids || [];
+                    ids.forEach(id => {
+                        if (knownReadIds.has(id)) return;
+                        knownReadIds.add(id);
+                        const tick = document.querySelector(`[data-msg-id="${id}"] .bi-check2`);
+                        if (tick) {
+                            tick.classList.remove('bi-check2', 'text-muted');
+                            tick.classList.add('bi-check2-all', 'text-primary');
+                            tick.removeAttribute('style');
+                            tick.setAttribute('title', 'Read');
+                            // Animate the change
+                            tick.style.transition = 'all 0.3s';
+                        }
+                    });
+                })
+                .catch(() => {});
+        }
+
+        const poller = setInterval(pollReadStatus, 5000);
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) pollReadStatus();  // check immediately on tab focus
+        });
+    });
+</script>
+{% endblock %}

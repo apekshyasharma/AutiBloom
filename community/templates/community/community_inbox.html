@@ -1,0 +1,81 @@
+{% extends 'layouts/caregiver_base.html' %}
+{% load static %}
+
+{% block caregiver_title %}Inbox{% endblock %}
+{% block caregiver_topbar_title %}Inbox{% endblock %}
+
+{% block caregiver_extra_css %}
+<link rel="stylesheet" href="{% static 'community/community.css' %}">
+{% endblock %}
+
+{% block caregiver_content %}
+<div class="container py-5" style="max-width: 800px;">
+    
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h2 text-primary fw-bold mb-0">Inbox</h1>
+        <a href="{% url 'community_home' %}" class="btn btn-outline-secondary rounded-pill px-4 shadow-sm">
+            <i class="bi bi-arrow-left me-2"></i>Community
+        </a>
+    </div>
+
+    <!-- Threads List -->
+    <div class="d-flex flex-column gap-3">
+        {% if active_threads %}
+            {% for item in active_threads %}
+                <a href="{% url 'community_thread' item.thread.id %}" class="card shadow-sm rounded-4 text-decoration-none thread-card {% if item.unread_count > 0 %}bg-primary bg-opacity-10 border border-primary border-opacity-25{% else %}border-0{% endif %}" style="transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 10px 25px rgba(0,0,0,0.08)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 .125rem .25rem rgba(0,0,0,.075)'">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center">
+                            <!-- Avatar -->
+                            <div class="flex-shrink-0 d-inline-flex align-items-center justify-content-center text-primary rounded-circle me-4" style="width: 56px; height: 56px; font-size: 1.5rem; font-weight: bold; background: #e0e7ff;">
+                                {{ item.other_user.username|make_list|first|upper }}
+                            </div>
+                            
+                            <!-- Content -->
+                            <div class="flex-grow-1 min-width-0">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <h2 class="h5 mb-0 text-dark fw-bold text-truncate pe-3">
+                                        {{ item.other_user.get_full_name|default:item.other_user.username }}
+                                        {% if item.unread_count > 0 %}
+                                            <span class="badge bg-danger rounded-pill ms-2 align-middle" style="font-size: 0.75rem;">{{ item.unread_count }}</span>
+                                        {% endif %}
+                                    </h2>
+                                    <small class="text-muted text-nowrap fw-medium">
+                                        {% if item.last_message %}
+                                            {{ item.last_message.created_at|date:"M d, g:i a" }}
+                                        {% endif %}
+                                    </small>
+                                </div>
+                                <p class="mb-0 text-truncate pe-4 {% if item.unread_count > 0 %}text-primary fw-bold{% else %}text-muted{% endif %}" style="font-size: 0.95rem;">
+                                    {% if item.last_message %}
+                                        {% if item.last_message.sender == request.user %}
+                                            {% if item.last_message.is_read %}
+                                                <i class="bi bi-check2-all text-primary me-1" title="Read"></i>
+                                            {% else %}
+                                                <i class="bi bi-check2 text-muted me-1" style="opacity: 0.7;" title="Delivered"></i>
+                                            {% endif %}
+                                            <span class="text-secondary fw-semibold">You:</span> 
+                                        {% endif %}
+                                        {{ item.last_message.body }}
+                                    {% else %}
+                                        <em class="text-black-50">Say hello to start the conversation!</em>
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            {% endfor %}
+        {% else %}
+            <div class="card shadow-sm border-0 rounded-4 text-center p-5">
+                <i class="bi bi-chat-square-text" style="font-size: 3rem; color: #94a3b8; display: block; margin-bottom: 1rem;"></i>
+                <h3 class="h5 text-secondary">No messages yet</h3>
+                <p class="text-muted mb-4">You haven't started any conversations with other caregivers.</p>
+                <div>
+                    <a href="{% url 'community_home' %}" class="btn btn-primary rounded-pill px-4 shadow-sm">Find Caregivers</a>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
