@@ -1,0 +1,579 @@
+{% extends 'layouts/caregiver_base.html' %}
+{% block caregiver_title %}Report: {{ child.name }} — AutiBloom{% endblock %}
+
+{% block caregiver_extra_css %}
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --teal:   #14b8a6;
+  --teal-d: #0f766e;
+  --night:  #0f172a;
+  --soft:   #f8fafc;
+  --border: rgba(0,0,0,.06);
+  --indigo: #6366f1;
+  --indigo-d: #4f46e5;
+}
+body { font-family: 'Inter', sans-serif; background: var(--soft); color: var(--night); }
+h1,h2,h3,h4 { font-family: 'Plus Jakarta Sans', sans-serif; }
+
+.report-header {
+  background: linear-gradient(135deg, var(--night) 0%, #1e293b 100%);
+  color: #fff;
+  padding: 3rem 0 2.5rem;
+  border-bottom: 1px solid rgba(255,255,255,.05);
+}
+.report-header .chip {
+  display: inline-flex; align-items: center; gap: .4rem;
+  font-size: .72rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--teal); background: rgba(20,184,166,.12);
+  border: 1px solid rgba(20,184,166,.3); border-radius: 100px;
+  padding: .3rem .9rem; margin-bottom: 1rem;
+}
+.report-header h1 { font-size: clamp(1.75rem,4vw,2.75rem); font-weight: 800; letter-spacing: -.03em; margin: 0 0 .5rem; }
+.report-header p { color: #94a3b8; margin: 0; font-size: 1rem; }
+
+.report-body { padding: 2.5rem 0 4rem; }
+
+/* Empty State */
+.empty-card {
+  background: #fff; border-radius: 24px; padding: 4rem 2rem;
+  text-align: center; border: 1px solid var(--border);
+  box-shadow: 0 8px 32px rgba(0,0,0,.04);
+  max-width: 540px; margin: 0 auto;
+}
+.empty-icon { font-size: 3.5rem; margin-bottom: 1.25rem; }
+.empty-title { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 1.4rem; font-weight: 800; margin-bottom: .75rem; color: var(--night); }
+.empty-body { color: #64748b; font-size: 1rem; line-height: 1.6; margin-bottom: 2rem; }
+.btn-start {
+  display: inline-flex; align-items: center; gap: .5rem;
+  background: linear-gradient(135deg, var(--teal), var(--teal-d));
+  color: #fff; font-weight: 700; font-size: 1rem;
+  padding: .9rem 2rem; border-radius: 14px;
+  text-decoration: none; transition: all .3s;
+  box-shadow: 0 6px 20px rgba(20,184,166,.35);
+}
+.btn-start:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(20,184,166,.45); color: #fff; }
+
+/* Table */
+.table-card {
+  background: #fff; border-radius: 20px;
+  border: 1px solid var(--border);
+  box-shadow: 0 8px 24px rgba(0,0,0,.04);
+  overflow: hidden;
+}
+.table-card table { margin: 0; }
+.table-card thead th {
+  font-family: 'Inter', sans-serif;
+  font-size: .72rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+  color: #64748b; background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0; padding: 1rem 1.25rem;
+}
+.table-card tbody td {
+  font-family: 'Inter', sans-serif;
+  padding: .95rem 1.25rem; font-size: .92rem;
+  border-bottom: 1px solid #f1f5f9; vertical-align: middle; color: var(--night);
+}
+.table-card tbody tr:last-child td { border-bottom: none; }
+.table-card tbody tr:hover td { background: #f8fafc; }
+.score-pill {
+  display: inline-flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: .85rem;
+  border-radius: 100px; padding: .25rem .8rem;
+  min-width: 52px;
+}
+.score-high  { background: #dcfce7; color: #16a34a; }
+.score-mid   { background: #fef9c3; color: #b45309; }
+.score-low   { background: #fee2e2; color: #dc2626; }
+.score-null  { background: #f1f5f9; color: #94a3b8; }
+.status-submitted { color: #16a34a; font-weight: 600; font-size: .82rem; }
+
+.back-link { color: #64748b; text-decoration: none; font-size: .9rem; font-weight: 600; }
+.back-link:hover { color: var(--teal); }
+
+/* Prediction styles */
+.btn-predict {
+  display: inline-flex; align-items: center; gap: .35rem;
+  background: linear-gradient(135deg, var(--indigo), var(--indigo-d));
+  color: #fff; font-weight: 600; font-size: .78rem;
+  padding: .45rem 1rem; border-radius: 10px; border: none;
+  cursor: pointer; transition: all .25s;
+  box-shadow: 0 4px 12px rgba(99,102,241,.3);
+  white-space: nowrap;
+}
+.btn-predict:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(99,102,241,.4); }
+.btn-predict:disabled { opacity: .6; cursor: not-allowed; transform: none; }
+.btn-predict .spinner { display: none; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,.3); border-top-color: #fff; border-radius: 50%; animation: spin .6s linear infinite; }
+.btn-predict.loading .spinner { display: inline-block; }
+.btn-predict.loading .label-text { display: none; }
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.pred-card {
+  background: linear-gradient(135deg, #f0f0ff 0%, #e8e8fd 100%);
+  border: 1px solid rgba(99,102,241,.15);
+  border-radius: 12px; padding: .65rem .85rem;
+  font-size: .78rem; line-height: 1.5;
+  max-width: 220px;
+}
+.pred-card .pred-label { font-weight: 700; color: var(--indigo-d); margin-bottom: .2rem; }
+.pred-card .pred-meta { color: #64748b; font-size: .7rem; }
+.pred-card .pred-disclaimer {
+  color: #94a3b8; font-size: .65rem; font-style: italic;
+  margin-top: .35rem; padding-top: .3rem;
+  border-top: 1px solid rgba(99,102,241,.1);
+}
+
+/* Explanation card */
+.explain-toggle {
+  color: var(--indigo); font-size: .7rem; font-weight: 600;
+  cursor: pointer; text-decoration: underline; margin-top: .3rem;
+  display: inline-block;
+}
+.explain-toggle:hover { color: var(--indigo-d); }
+
+.explain-panel {
+  background: #fff; border: 1px solid rgba(99,102,241,.12);
+  border-radius: 14px; padding: 1rem 1.1rem;
+  margin-top: .5rem; font-size: .8rem;
+  box-shadow: 0 4px 16px rgba(99,102,241,.08);
+  max-width: 280px;
+}
+.explain-panel h5 {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: .82rem; font-weight: 700; color: var(--indigo-d);
+  margin: 0 0 .6rem; display: flex; align-items: center; gap: .35rem;
+}
+.explain-section { margin-bottom: .6rem; }
+.explain-section-title {
+  font-size: .68rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .08em; color: #64748b; margin-bottom: .3rem;
+}
+.risk-chip {
+  display: inline-flex; align-items: center; justify-content: center;
+  background: #fee2e2; color: #dc2626; font-weight: 700; font-size: .68rem;
+  border-radius: 6px; padding: .15rem .45rem; margin: .1rem .15rem .1rem 0;
+}
+.risk-chip.safe { background: #dcfce7; color: #16a34a; }
+.domain-tag {
+  display: inline-flex; align-items: center;
+  background: rgba(99,102,241,.1); color: var(--indigo-d);
+  font-weight: 600; font-size: .7rem;
+  border-radius: 8px; padding: .2rem .55rem; margin: .1rem .15rem .1rem 0;
+}
+.explain-summary {
+  color: #475569; font-size: .78rem; line-height: 1.55;
+  padding: .5rem .65rem; background: #f8fafc;
+  border-radius: 10px; border-left: 3px solid var(--indigo);
+}
+.explain-disclaimer {
+  color: #94a3b8; font-size: .62rem; font-style: italic;
+  margin-top: .5rem; text-align: center;
+}
+
+/* Narrative styles */
+.narrative-toggle {
+  color: #10b981; font-size: .7rem; font-weight: 600;
+  cursor: pointer; text-decoration: underline; margin-top: .3rem;
+  display: inline-block; margin-left: .5rem;
+}
+.narrative-toggle:hover { color: #059669; }
+
+.narrative-panel {
+  background: #fff; border: 1px solid rgba(16,185,129,.2);
+  border-radius: 12px; padding: 1.1rem;
+  margin-top: .5rem; font-size: .8rem;
+  box-shadow: 0 4px 16px rgba(16,185,129,.06);
+  max-width: 320px; white-space: pre-line;
+  color: #334155; line-height: 1.6;
+}
+.narrative-panel h3 { font-size: .95rem; color: #059669; font-weight: 700; margin-top: 0; margin-bottom: .4rem; font-family: 'Plus Jakarta Sans', sans-serif;}
+.narrative-panel strong { color: #0f172a; }
+
+.btn-generate-narrative {
+  display: inline-flex; align-items: center; gap: .3rem;
+  background: #10b981; color: #fff; font-size: .7rem; font-weight: 600;
+  padding: .35rem .75rem; border-radius: 8px; border: none;
+  cursor: pointer; margin-top: .5rem; transition: background .2s;
+}
+.btn-generate-narrative:hover { background: #059669; }
+.btn-generate-narrative:disabled { opacity: .6; cursor: not-allowed; }
+.btn-generate-narrative .spinner { display: none; width: 12px; height: 12px; border: 2px solid rgba(255,255,255,.3); border-top-color: #fff; border-radius: 50%; animation: spin .6s linear infinite; }
+.btn-generate-narrative.loading .spinner { display: inline-block; }
+.btn-generate-narrative.loading .btn-text { display: none; }
+
+.pred-error {
+  color: #dc2626; font-size: .78rem; font-weight: 600;
+  background: #fef2f2; border-radius: 8px; padding: .4rem .7rem;
+  border: 1px solid #fecaca;
+}
+</style>
+{% endblock caregiver_extra_css %}
+
+{% block caregiver_content %}
+
+<!-- Header -->
+<div class="report-header">
+  <div class="container">
+    <div class="chip mt-2"><i class="bi bi-bar-chart-line-fill"></i> Wellbeing Report</div>
+    <h1>{{ child.name }}'s Progress Report</h1>
+    <p>All submitted weekly check-ins, most recent first.</p>
+  </div>
+</div>
+
+<!-- Body -->
+<div class="report-body">
+<div class="container">
+
+{% if entries %}
+
+  <!-- Summary Row -->
+  <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+    <p class="mb-0 text-muted" style="font-size:.9rem;">
+      <i class="bi bi-clipboard2-check me-1 text-success"></i>
+      <strong>{{ entries.count }}</strong> submitted check-in{{ entries.count|pluralize }} found
+    </p>
+    <a href="{% url 'wellbeing_entry_start' child.id %}" class="btn btn-sm btn-outline-success rounded-pill">
+      <i class="bi bi-plus-circle me-1"></i>New Check-in
+    </a>
+  </div>
+
+  <!-- Table -->
+  <div class="table-card">
+    <table class="table mb-0">
+      <thead>
+        <tr>
+          <th>Week Starting</th>
+          <th>Overall</th>
+          <th>Communication</th>
+          <th>Routines</th>
+          <th>Emotional</th>
+          <th>Sensory</th>
+          <th>Submitted</th>
+          <th>Report</th>
+          <th>Prediction</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for entry in entries %}
+        <tr>
+          <td>
+            <span class="fw-600" style="font-weight:600;">{{ entry.week_start|date:"M d, Y" }}</span>
+            <br><small class="text-muted">– {{ entry.week_end|date:"M d" }}</small>
+          </td>
+
+          <!-- Overall Score -->
+          <td>
+            {% if entry.overall_score is not None %}
+              {% if entry.overall_score >= 3 %}
+                <span class="score-pill score-high">{{ entry.overall_score|floatformat:1 }}</span>
+              {% elif entry.overall_score >= 1.5 %}
+                <span class="score-pill score-mid">{{ entry.overall_score|floatformat:1 }}</span>
+              {% else %}
+                <span class="score-pill score-low">{{ entry.overall_score|floatformat:1 }}</span>
+              {% endif %}
+            {% else %}
+              <span class="score-pill score-null">—</span>
+            {% endif %}
+          </td>
+
+          <!-- Domain Scores -->
+          <td>{% if entry.communication_score is not None %}{{ entry.communication_score|floatformat:1 }}{% else %}<span class="text-muted">—</span>{% endif %}</td>
+          <td>{% if entry.routines_score is not None %}{{ entry.routines_score|floatformat:1 }}{% else %}<span class="text-muted">—</span>{% endif %}</td>
+          <td>{% if entry.emotional_score is not None %}{{ entry.emotional_score|floatformat:1 }}{% else %}<span class="text-muted">—</span>{% endif %}</td>
+          <td>{% if entry.sensory_score is not None %}{{ entry.sensory_score|floatformat:1 }}{% else %}<span class="text-muted">—</span>{% endif %}</td>
+
+          <td>
+            <span class="status-submitted">
+              <i class="bi bi-check-circle-fill me-1"></i>
+              {{ entry.submitted_at|date:"M d, Y" }}
+            </span>
+          </td>
+          <td>
+            <a href="{% url 'wellbeing_entry_report' entry.id %}"
+               class="btn btn-sm btn-outline-secondary rounded-pill" title="View Report">
+              <i class="bi bi-file-earmark-pdf"></i>
+            </a>
+          </td>
+
+          <!-- Prediction Column -->
+          <td>
+            <div id="pred-cell-{{ entry.id }}">
+              <!-- Populated by JS below -->
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+{% else %}
+
+  <!-- Empty State — must NOT auto-redirect -->
+  <div class="empty-card mt-3">
+    <div class="empty-icon">📋</div>
+    <h2 class="empty-title">No submitted check-ins yet</h2>
+    <p class="empty-body">
+      Submit your first weekly check-in to start seeing {{ child.name }}'s wellbeing progress here.
+      Consistent tracking helps spot trends and celebrate growth. 🌱
+    </p>
+    <a href="{% url 'wellbeing_entry_start' child.id %}" class="btn-start">
+      <i class="bi bi-plus-circle-fill"></i> Start Weekly Check-in
+    </a>
+  </div>
+
+{% endif %}
+
+</div><!-- /container -->
+</div><!-- /report-body -->
+
+{% endblock caregiver_content %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+
+  const DOMAIN_LABELS = {
+    'communication': 'Communication',
+    'routines': 'Routines',
+    'emotional_responses': 'Emotional Responses',
+    'sensory_behaviors': 'Sensory Behaviors'
+  };
+
+  // Prediction data from server (includes explanation)
+  const predictionsData = {
+    {% for entry_id, pred in predictions_by_entry_id.items %}
+      '{{ entry_id }}': {
+        prediction_id: '{{ pred.id }}',
+        label: '{{ pred.prediction_label|escapejs }}',
+        version: '{{ pred.model_version|escapejs }}',
+        created_at: '{{ pred.created_at|date:"M d, Y H:i"|escapejs }}',
+        explanation: {{ pred.explanation_json|safe|default:"null" }},
+        narrative: `{{ pred.narrative_text|escapejs|default:"" }}`
+      },
+    {% endfor %}
+  };
+
+  // Render all prediction cells
+  document.querySelectorAll('[id^="pred-cell-"]').forEach(function(cell) {
+    const entryId = cell.id.replace('pred-cell-', '');
+    if (predictionsData[entryId]) {
+      renderPredCard(cell, predictionsData[entryId], entryId);
+    } else {
+      renderPredButton(cell, entryId);
+    }
+  });
+
+  function renderPredCard(container, data, entryId) {
+    let html = `
+      <div class="pred-card">
+        <div class="pred-label"><i class="bi bi-cpu me-1"></i>${data.label}</div>
+        <div class="pred-meta">${data.version} · ${data.created_at}</div>
+        <div class="pred-disclaimer">Support tool — not a diagnosis.</div>`;
+
+    if (data.explanation) {
+      html += `<div class="explain-toggle" onclick="toggleExplain('${entryId}')">
+        <i class="bi bi-lightbulb me-1"></i>What influenced this?
+      </div>`;
+    }
+    if (data.prediction_id) {
+      if (data.narrative) {
+         html += `<div class="narrative-toggle" onclick="toggleNarrative('${entryId}')">
+           <i class="bi bi-journal-text me-1"></i>Parent Summary
+         </div>`;
+      }
+    }
+    html += `</div>`;
+
+    if (data.explanation) {
+      html += renderExplainPanel(data.explanation, entryId);
+    }
+    
+    // Narrative Container
+    if (data.prediction_id) {
+      html += `<div id="narrative-container-${entryId}">`;
+      if (data.narrative) {
+          html += `<div class="narrative-panel" id="narrative-${entryId}" style="display:none;">${data.narrative}</div>`;
+      } else {
+          html += `<button class="btn-generate-narrative mt-2" onclick="generateNarrative(this, '${data.prediction_id}', '${entryId}')">
+                    <span class="spinner"></span><span class="btn-text"><i class="bi bi-magic me-1"></i>Generate Summary</span>
+                   </button>`;
+      }
+      html += `</div>`;
+    }
+
+    container.innerHTML = html;
+  }
+
+  function renderExplainPanel(exp, entryId) {
+    const riskChips = (exp.risk_flags || []).map(f =>
+      `<span class="risk-chip">${f.toUpperCase()}</span>`
+    ).join('');
+
+    const safeFlags = [];
+    for (let i = 1; i <= 10; i++) {
+      const key = `a${i}`;
+      if (!(exp.risk_flags || []).includes(key)) safeFlags.push(key);
+    }
+    const safeChips = safeFlags.map(f =>
+      `<span class="risk-chip safe">${f.toUpperCase()}</span>`
+    ).join('');
+
+    const domainTags = (exp.top_domains || []).map(d =>
+      `<span class="domain-tag">${DOMAIN_LABELS[d] || d}</span>`
+    ).join('');
+
+    return `
+      <div class="explain-panel" id="explain-${entryId}" style="display:none;">
+        <h5><i class="bi bi-lightbulb-fill"></i> What influenced this result?</h5>
+
+        <div class="explain-section">
+          <div class="explain-section-title">Flagged Items (${exp.risk_count || 0} of 10)</div>
+          ${riskChips || '<span style="color:#94a3b8;font-size:.75rem;">None flagged</span>'}
+        </div>
+
+        ${safeChips ? `
+        <div class="explain-section">
+          <div class="explain-section-title">Strengths</div>
+          ${safeChips}
+        </div>` : ''}
+
+        ${domainTags ? `
+        <div class="explain-section">
+          <div class="explain-section-title">Top Areas</div>
+          ${domainTags}
+        </div>` : ''}
+
+        ${exp.friendly_summary ? `
+        <div class="explain-section">
+          <div class="explain-summary">${exp.friendly_summary}</div>
+        </div>` : ''}
+
+        <div class="explain-disclaimer">
+          <i class="bi bi-info-circle me-1"></i>This is a screening support tool, not a clinical diagnosis.
+          Always consult a qualified professional.
+        </div>
+      </div>`;
+  }
+
+  window.toggleExplain = function(entryId) {
+    const panel = document.getElementById('explain-' + entryId);
+    if (panel) {
+      panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+    }
+  };
+
+  window.toggleNarrative = function(entryId) {
+    const panel = document.getElementById('narrative-' + entryId);
+    if (panel) {
+      panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+    }
+  };
+
+  window.generateNarrative = function(btn, predId, entryId) {
+    btn.classList.add('loading');
+    btn.disabled = true;
+    
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || getCookie('csrftoken');
+    
+    fetch(`/wellbeing/narrative/${predId}/`, {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': csrfToken,
+        'Content-Type': 'application/x-www-form-urlencoded',
+      }
+    })
+    .then(resp => {
+      if (!resp.ok) return resp.json().then(d => Promise.reject(d));
+      return resp.json();
+    })
+    .then(data => {
+      const parentScoreDiv = document.getElementById(`narrative-container-${entryId}`);
+      parentScoreDiv.innerHTML = `<div class="narrative-panel" id="narrative-${entryId}">${data.narrative_text}</div>`;
+      
+      // Update toggle links on pred-card
+      const predCard = document.querySelector(`#pred-cell-${entryId} .pred-card`);
+      if (predCard && !predCard.querySelector('.narrative-toggle')) {
+         predCard.innerHTML += `<div class="narrative-toggle" onclick="toggleNarrative('${entryId}')">
+           <i class="bi bi-journal-text me-1"></i>Parent Summary
+         </div>`;
+      }
+      predictionsData[entryId].narrative = data.narrative_text;
+    })
+    .catch(err => {
+      btn.classList.remove('loading');
+      btn.disabled = false;
+      const errDiv = document.createElement('div');
+      errDiv.className = 'pred-error mt-1';
+      errDiv.textContent = err.error || 'Failed to generate summary.';
+      btn.parentNode.appendChild(errDiv);
+      setTimeout(() => errDiv.remove(), 5000);
+    });
+  };
+
+  function renderPredButton(container, entryId) {
+    const btn = document.createElement('button');
+    btn.className = 'btn-predict';
+    btn.setAttribute('data-entry-id', entryId);
+    btn.innerHTML = '<span class="spinner"></span><span class="label-text"><i class="bi bi-cpu me-1"></i>Run Prediction</span>';
+    btn.addEventListener('click', function() { runPrediction(btn, entryId); });
+    container.innerHTML = '';
+    container.appendChild(btn);
+  }
+
+  function runPrediction(btn, entryId) {
+    btn.classList.add('loading');
+    btn.disabled = true;
+
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value
+                   || getCookie('csrftoken');
+
+    fetch(`/wellbeing/predict/entry/${entryId}/`, {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': csrfToken,
+        'Content-Type': 'application/json',
+      },
+      credentials: 'same-origin',
+    })
+    .then(resp => {
+      if (!resp.ok) return resp.json().then(d => Promise.reject(d));
+      return resp.json();
+    })
+    .then(data => {
+      const cell = document.getElementById(`pred-cell-${entryId}`);
+      const createdDate = new Date(data.created_at).toLocaleString();
+      renderPredCard(cell, {
+        label: data.prediction_label,
+        version: data.model_version,
+        created_at: createdDate,
+        explanation: data.explanation || null,
+      }, entryId);
+    })
+    .catch(err => {
+      btn.classList.remove('loading');
+      btn.disabled = false;
+      const cell = document.getElementById(`pred-cell-${entryId}`);
+      const errDiv = document.createElement('div');
+      errDiv.className = 'pred-error mt-1';
+      errDiv.textContent = err.error || 'Prediction failed. Please try again.';
+      cell.appendChild(errDiv);
+      setTimeout(() => errDiv.remove(), 5000);
+    });
+  }
+
+  function getCookie(name) {
+    const cookies = document.cookie.split(';');
+    for (let c of cookies) {
+      c = c.trim();
+      if (c.startsWith(name + '=')) return decodeURIComponent(c.substring(name.length + 1));
+    }
+    return '';
+  }
+
+});
+</script>
+
+<!-- Hidden CSRF token for fetch calls -->
+{% csrf_token %}
+{% endblock %}
