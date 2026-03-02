@@ -1,0 +1,91 @@
+{
+  "version": "rf-v1.0",
+  "features": [
+    "age_years",
+    "sex",
+    "jaundice",
+    "family_asd",
+    "a1",
+    "a2",
+    "a3",
+    "a4",
+    "a5",
+    "a6",
+    "a7",
+    "a8",
+    "a9",
+    "a10"
+  ],
+  "categorical": [
+    "sex",
+    "jaundice",
+    "family_asd"
+  ],
+  "numerical": [
+    "age_years",
+    "a1",
+    "a2",
+    "a3",
+    "a4",
+    "a5",
+    "a6",
+    "a7",
+    "a8",
+    "a9",
+    "a10"
+  ],
+  "transformed_feature_order": [
+    "sex",
+    "jaundice",
+    "family_asd",
+    "age_years",
+    "a1",
+    "a2",
+    "a3",
+    "a4",
+    "a5",
+    "a6",
+    "a7",
+    "a8",
+    "a9",
+    "a10"
+  ],
+  "model_type": "RandomForestClassifier",
+  "target": "ASD_label",
+  "label_map": {
+    "0": "Low Probability",
+    "1": "High Probability"
+  },
+  "metrics": {
+    "accuracy": 0.9483,
+    "precision": 0.9032,
+    "recall": 1.0,
+    "f1": 0.9492,
+    "roc_auc": 0.9964
+  },
+  "cv_metrics": {
+    "accuracy": {
+      "mean": 0.9261,
+      "std": 0.0325
+    },
+    "precision": {
+      "mean": 0.9054,
+      "std": 0.0314
+    },
+    "recall": {
+      "mean": 0.9462,
+      "std": 0.0332
+    },
+    "f1": {
+      "mean": 0.9254,
+      "std": 0.0323
+    },
+    "roc_auc": {
+      "mean": 0.9852,
+      "std": 0.0097
+    }
+  },
+  "training_samples": 230,
+  "test_samples": 58,
+  "trained_at_utc": "2026-04-18T14:04:05.902705+00:00"
+}
