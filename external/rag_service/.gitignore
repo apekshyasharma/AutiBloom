@@ -1,0 +1,169 @@
+# ============================================================================
+# Python
+# ============================================================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# ============================================================================
+# Virtual Environments
+# ============================================================================
+.venv/
+venv/
+ENV/
+env/
+.env.local
+.env.*.local
+
+# ============================================================================
+# IDE & Editor
+# ============================================================================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+.project
+.pydevproject
+.settings/
+*.sublime-project
+*.sublime-workspace
+.vim/
+
+# ============================================================================
+# Environment & Secrets
+# ============================================================================
+.env
+.env.local
+.env.*.local
+*.key
+*.pem
+*.pfx
+secrets.yaml
+
+# ============================================================================
+# Project-Specific: RAG System
+# ============================================================================
+
+# Raw PDFs (user uploads)
+data/raw_pdfs/
+!data/raw_pdfs/.gitkeep
+
+# Generated artifacts (indexes, embeddings, FAISS)
+artifacts/
+!artifacts/.gitkeep
+
+# Chat logs and SQLite database
+artifacts/chatlogs.sqlite3
+artifacts/**/*.db
+artifacts/**/*.sqlite
+artifacts/**/*.sqlite3
+
+# Cache files
+*.cache
+.cache/
+.pytest_cache/
+.ruff_cache/
+
+# ============================================================================
+# OS-Specific
+# ============================================================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# ============================================================================
+# Temporary & Debug Files
+# ============================================================================
+*.tmp
+*.temp
+*.log
+*.bak
+*.backup
+*.orig
+*~
+.#*
+.\#*
+
+# ============================================================================
+# Dependencies & Package Managers
+# ============================================================================
+node_modules/
+package-lock.json
+yarn.lock
+.uv/
+.uv.lock
+
+# ============================================================================
+# Testing & Coverage
+# ============================================================================
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.hypothesis/
+pytest-reports/
+coverage.xml
+
+# ============================================================================
+# Documentation
+# ============================================================================
+site/
+docs/_build/
+.mkdocs.yml.bak
+
+# ============================================================================
+# CI/CD
+# ============================================================================
+.gitlab-ci.yml.local
+.github/workflows/local/
+
+# ============================================================================
+# Docker
+# ============================================================================
+.dockerignore
+docker-compose.override.yml
+
+# ============================================================================
+# Misc
+# ============================================================================
+.vscode-settings.json
+.python-version
+.tool-versions
+workspace.code-workspace
+*.ipynb
+.ipynb_checkpoints/
+
+
+
+
+
+
+
+

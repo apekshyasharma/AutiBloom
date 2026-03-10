@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Scholar</title>
+    <link rel="stylesheet" href="/static/chat.css">
+</head>
+
+<body>
+    <div class="parallax-bg"></div>
+    <div class="app-container">
+        <header class="chat-header">
+            <h1>AI Scholar 👩‍🎓</h1>
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <!-- New Mode Selector -->
+                <select id="modeSelect" class="mode-select" title="Retrieval Strategy">
+                    <option value="auto" selected>🤖 Auto</option>
+                    <option value="semantic">🔣 Semantic</option>
+                    <option value="fixed">⚙️ Fixed</option>
+                </select>
+
+                <div class="theme-switcher">
+                    <button class="theme-btn" data-set-theme="dark" title="Dark Theme">🌙</button>
+                    <button class="theme-btn" data-set-theme="purple" title="Purple Theme">💜</button>
+                    <button class="theme-btn" data-set-theme="teal" title="Teal Theme">💠</button>
+                </div>
+            </div>
+        </header>
+        <div class="chat-area" id="chatArea">
+            <div class="message bot">
+                <div class="bubble">
+                    <b>Hello!</b> Welcome to <b>ClassicML Scholar</b>, your AI assistant for exploring foundational machine learning research.<br><br>
+                    I am grounded in a curated database of seminal papers (e.g., FaceNet,LSTM's, Transformer Architectures). Ask me to:<br><br>
+                    📝 Summarize a paper's key findings.<br>
+                    💡 Explain a specific method or algorithm.<br>
+                    🔄 Compare different classical models.<br><br>
+                    What classical paper would you like to discuss today?
+                </div>
+            </div>
+        </div>
+        <form class="input-area" id="chatForm">
+            <input type="text" id="messageInput" placeholder="Type a message..." autocomplete="off">
+            <button type="submit">Send</button>
+        </form>
+    </div>
+    <script src="/static/chat.js"></script>
+</body>
+
+</html>

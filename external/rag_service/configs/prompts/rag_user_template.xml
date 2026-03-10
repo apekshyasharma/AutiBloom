@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<prompt>
+    <context>{context}</context>
+    <question>{question}</question>
+    <instructions>Write a clear, caring, plain-English answer. Do not cite sources, filenames, or PDFs. Do not reference the context in any way.</instructions>
+</prompt>

@@ -1,0 +1,32 @@
+paths:
+  pdf_dir: "data/raw_pdfs"
+  artifacts_dir: "artifacts"
+  prompts_dir: "configs/prompts"
+
+chunking:
+  chunk_size: 1200
+  overlap: 200
+  fixed_enabled: true
+  semantic_enabled: true
+
+embedding:
+  model_name: "sentence-transformers/all-MiniLM-L6-v2"
+  normalize: true
+
+faiss:
+  M: 32
+  ef_construction: 200
+  ef_search: 128
+
+retrieval:
+  bm25_k: 200
+  dense_k: 50
+  final_k: 8
+  rrf_k: 60
+  max_per_doc: 2
+  chunking_mode_default: "semantic"  # fixed | semantic | both | auto
+
+llm:
+  model: "gemma-3-27b-it"
+  temperature: 0.2
+  max_output_tokens: 800
