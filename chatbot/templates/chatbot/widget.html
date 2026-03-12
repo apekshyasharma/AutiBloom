@@ -1,0 +1,69 @@
+{% load static %}
+
+<!-- Chatbot Launcher Definition -->
+<button id="autibloom-chat-launcher" aria-label="Open support chat">
+    <i class="bi bi-chat-dots-fill"></i>
+    <i class="bi bi-x-lg close-icon"></i>
+</button>
+
+<!-- Slide-over Panel -->
+<div id="autibloom-chat-panel">
+    
+    <!-- Header -->
+    <div class="chat-header">
+        <div class="chat-header-top">
+            <div class="chat-logo-bg">
+                <i class="bi bi-robot fs-5"></i>
+            </div>
+            <div class="chat-title">
+                <h5>AutiBloom Support Chat</h5>
+                <div class="chat-safety-note">
+                    <i class="bi bi-shield-exclamation text-warning"></i>
+                    This is a support tool demonstration, not a diagnosis.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Messages -->
+    <div class="chat-messages" id="chat-messages-box">
+        <div class="chat-message assistant">
+            <div class="chat-bubble">
+                Hello! I'm here to support you with strategies, routines, and educational material regarding autism spectrum conditions. How can I help today?
+            </div>
+        </div>
+        
+        <!-- Typing Indicator -->
+        <div class="typing-indicator" id="chat-typing-indicator">
+            <span></span><span></span><span></span>
+        </div>
+        
+        <!-- Skip Button -->
+        <div class="text-center mt-2 mb-2" id="chat-skip-wrapper" style="display: none;">
+            <button id="chat-skip-btn" class="btn btn-sm btn-outline-secondary rounded-pill" aria-label="Skip typing animation">
+                <i class="bi bi-fast-forward-fill me-1"></i> Skip
+            </button>
+        </div>
+    </div>
+
+<!-- Error Message -->
+    <div class="chat-error-msg" id="chat-error-msg"></div>
+
+    <!-- Input Area -->
+    <div class="chat-input-area">
+        <div class="chat-input-wrapper">
+            <textarea id="chat-input-box" rows="1" placeholder="Type a message..." aria-label="Chat input"></textarea>
+            <button id="chat-send-btn" disabled aria-label="Send message">
+                <i class="bi bi-send-fill fs-6"></i>
+            </button>
+        </div>
+        <div class="chat-footer-info">
+            <span>Press Enter to send</span>
+            <span id="chat-char-count">0/800</span>
+        </div>
+    </div>
+</div>
+
+<!-- Dependencies -->
+<link rel="stylesheet" href="{% static 'chatbot/css/chatbot.css' %}">
+<script src="{% static 'chatbot/js/chatbot.js' %}"></script>

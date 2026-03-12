@@ -1,0 +1,386 @@
+{% extends "layouts/caregiver_base.html" %}
+{% load static %}
+
+{% block caregiver_title %}AI Assistant{% endblock %}
+{% block caregiver_topbar_title %}AI Assistant{% endblock %}
+
+{# Hide the floating chat bubble on this page — the page itself is the chat. #}
+{% block floating_chat_widget %}{% endblock %}
+
+{% block caregiver_extra_css %}
+<style>
+    :root {
+        --cb-bg: #fafbfc;
+        --cb-user: linear-gradient(135deg, #34d399, #059669);
+        --cb-assistant-bg: #ffffff;
+        --cb-border: #e5e7eb;
+        --cb-ink: #0f172a;
+        --cb-ink-soft: #475569;
+        --cb-muted: #94a3b8;
+    }
+
+    /* Push content to fill the shell-content area. */
+    .shell-content { padding: 0 !important; background: var(--cb-bg); }
+
+    .cb-shell {
+        display: flex; flex-direction: column;
+        height: calc(100vh - 64px);  /* minus topbar */
+        min-height: 520px;
+        background: var(--cb-bg);
+    }
+
+    .cb-stream {
+        flex: 1;
+        overflow-y: auto;
+        padding: 2rem 1rem 8rem;
+        scroll-behavior: smooth;
+    }
+
+    .cb-column { max-width: 760px; margin: 0 auto; }
+
+    .cb-empty {
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        text-align: center;
+        padding: 4rem 1rem 2rem;
+        color: var(--cb-ink);
+    }
+    .cb-empty h1 { font-weight: 800; font-size: 2rem; letter-spacing: -0.5px; margin-bottom: 0.5rem; }
+    .cb-empty p { color: var(--cb-ink-soft); max-width: 520px; margin: 0 auto 1.75rem; line-height: 1.6; }
+    .cb-empty .cb-logo {
+        width: 64px; height: 64px; border-radius: 20px;
+        background: linear-gradient(135deg, #d1fae5, #34d399);
+        display: flex; align-items: center; justify-content: center;
+        color: #064e3b; font-size: 1.8rem; margin-bottom: 1.25rem;
+        box-shadow: 0 10px 25px rgba(5,150,105,0.2);
+    }
+
+    .cb-suggestions { display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center; margin-top: 0.25rem; }
+    .cb-chip {
+        background: #fff; border: 1px solid var(--cb-border); color: var(--cb-ink-soft);
+        border-radius: 999px; padding: 0.5rem 1rem; font-size: 0.85rem; cursor: pointer;
+        transition: all 0.15s ease;
+    }
+    .cb-chip:hover { border-color: #34d399; color: #065f46; background: #ecfdf5; }
+
+    .cb-turn { margin-bottom: 1.5rem; }
+    .cb-turn .role {
+        font-size: 0.72rem; font-weight: 700; letter-spacing: 0.4px; text-transform: uppercase;
+        color: var(--cb-muted); margin-bottom: 0.4rem;
+        display: flex; align-items: center; gap: 0.4rem;
+    }
+    .cb-turn .role .role-dot { width: 8px; height: 8px; border-radius: 50%; }
+    .cb-turn.user .role .role-dot { background: #059669; }
+    .cb-turn.assistant .role .role-dot { background: #6366f1; }
+
+    .cb-bubble {
+        padding: 1rem 1.15rem;
+        border-radius: 16px;
+        font-size: 0.95rem; line-height: 1.65; color: var(--cb-ink);
+        border: 1px solid var(--cb-border);
+        background: var(--cb-assistant-bg);
+        white-space: pre-wrap; word-wrap: break-word;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+    }
+    .cb-turn.user .cb-bubble {
+        background: #f0fdf4; border-color: #bbf7d0;
+    }
+
+    .cb-typing {
+        display: inline-flex; gap: 5px; padding: 0.9rem 1.15rem;
+        background: var(--cb-assistant-bg); border: 1px solid var(--cb-border); border-radius: 16px;
+    }
+    .cb-typing span {
+        width: 7px; height: 7px; border-radius: 50%; background: #cbd5e1;
+        animation: cbBounce 1.3s infinite ease-in-out;
+    }
+    .cb-typing span:nth-child(2) { animation-delay: 0.15s; }
+    .cb-typing span:nth-child(3) { animation-delay: 0.3s; }
+    @keyframes cbBounce { 0%, 80%, 100% { transform: scale(0.7); opacity: 0.4; } 40% { transform: scale(1); opacity: 1; } }
+
+    .cb-error {
+        background: #fef2f2; border: 1px solid #fecaca; color: #991b1b;
+        border-radius: 12px; padding: 0.8rem 1rem; font-size: 0.88rem;
+        margin-bottom: 1rem;
+        display: none;
+    }
+    .cb-error.show { display: block; }
+
+    /* Composer docked at the bottom */
+    .cb-composer-wrap {
+        position: sticky; bottom: 0; left: 0; right: 0;
+        background: linear-gradient(to top, var(--cb-bg) 70%, rgba(250,251,252,0));
+        padding: 0.75rem 1rem 1.25rem;
+    }
+    .cb-composer {
+        max-width: 760px; margin: 0 auto;
+        background: #fff; border: 1px solid var(--cb-border); border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(2,6,23,0.06);
+        display: flex; align-items: flex-end; gap: 0.5rem;
+        padding: 0.5rem 0.65rem;
+    }
+    .cb-composer:focus-within { border-color: #34d399; box-shadow: 0 10px 30px rgba(52,211,153,0.15); }
+    .cb-composer textarea {
+        flex: 1; border: none; outline: none; resize: none;
+        background: transparent; font-size: 0.95rem; line-height: 1.5;
+        padding: 0.6rem 0.75rem; max-height: 180px; min-height: 44px; color: var(--cb-ink);
+        font-family: inherit;
+    }
+    .cb-send {
+        border: none; width: 40px; height: 40px; border-radius: 12px;
+        background: linear-gradient(135deg, #34d399, #059669); color: #fff;
+        display: inline-flex; align-items: center; justify-content: center;
+        cursor: pointer; transition: all 0.15s ease; flex-shrink: 0;
+    }
+    .cb-send:disabled { opacity: 0.4; cursor: not-allowed; }
+    .cb-send:not(:disabled):hover { transform: translateY(-1px); box-shadow: 0 6px 14px rgba(5,150,105,0.3); }
+
+    .cb-composer-foot {
+        max-width: 760px; margin: 0.5rem auto 0;
+        display: flex; justify-content: space-between;
+        font-size: 0.72rem; color: var(--cb-muted);
+    }
+</style>
+{% endblock %}
+
+{% block caregiver_content %}
+<div class="cb-shell">
+    <!-- Message stream -->
+    <div class="cb-stream" id="cbStream">
+        <div class="cb-column">
+            <div class="cb-empty" id="cbEmpty">
+                <div class="cb-logo"><i class="bi bi-robot"></i></div>
+                <h1>AutiBloom Assistant</h1>
+                <p>
+                    Ask about sensory strategies, routines, communication, or everyday caregiving questions.
+                    This is a support tool, not a diagnosis.
+                </p>
+                <div class="cb-suggestions" id="cbSuggestions">
+                    <button type="button" class="cb-chip" data-prompt="What are the early signs of autism spectrum disorder in young children?">Early signs of autism</button>
+                    <button type="button" class="cb-chip" data-prompt="What therapeutic interventions are available for children with ASD?">Therapy options</button>
+                    <button type="button" class="cb-chip" data-prompt="How can I support social skills development in a child with ASD?">Social skills support</button>
+                    <button type="button" class="cb-chip" data-prompt="How can caregivers protect their own wellbeing while raising a child with autism?">Caregiver wellbeing</button>
+                </div>
+            </div>
+
+            <div id="cbError" class="cb-error" role="alert"></div>
+            <div id="cbTurns"></div>
+        </div>
+    </div>
+
+    <!-- Composer -->
+    <div class="cb-composer-wrap">
+        <form class="cb-composer" id="cbForm" autocomplete="off">
+            {% csrf_token %}
+            <textarea id="cbInput" placeholder="Message the AutiBloom Assistant..." rows="1" maxlength="800" aria-label="Message"></textarea>
+            <button type="submit" class="cb-send" id="cbSend" disabled aria-label="Send">
+                <i class="bi bi-arrow-up"></i>
+            </button>
+        </form>
+        <div class="cb-composer-foot">
+            <span><i class="bi bi-shield-check me-1"></i> Private to your account</span>
+            <span id="cbCharCount">0/800</span>
+        </div>
+    </div>
+</div>
+
+<script>
+(function () {
+    const stream      = document.getElementById('cbStream');
+    const turnsEl     = document.getElementById('cbTurns');
+    const emptyEl     = document.getElementById('cbEmpty');
+    const errorEl     = document.getElementById('cbError');
+    const form        = document.getElementById('cbForm');
+    const input       = document.getElementById('cbInput');
+    const sendBtn     = document.getElementById('cbSend');
+    const charCount   = document.getElementById('cbCharCount');
+    const suggestions = document.getElementById('cbSuggestions');
+
+    const ENDPOINT  = "{% url 'chatbot:chat_ask' %}";
+    const SESS_KEY  = 'autibloom_chat_session';
+    const MAX_CHARS = 800;
+
+    let sessionId = localStorage.getItem(SESS_KEY) || '';
+    let busy = false;
+    let typingTimer = null;
+
+    function csrf() {
+        const cookies = document.cookie.split(';');
+        for (let c of cookies) {
+            c = c.trim();
+            if (c.startsWith('csrftoken=')) return decodeURIComponent(c.substring(10));
+        }
+        const t = document.querySelector('input[name=csrfmiddlewaretoken]');
+        return t ? t.value : '';
+    }
+
+    function escapeHtml(s) {
+        return String(s)
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+
+    // Lightweight markdown: **bold**, *italic*, newlines.
+    function formatAnswer(text) {
+        text = escapeHtml(text);
+        text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+        text = text.replace(/\*(.+?)\*/g, '<em>$1</em>');
+        text = text.replace(/\n/g, '<br>');
+        return text;
+    }
+
+    function addUserTurn(content) {
+        if (emptyEl) emptyEl.style.display = 'none';
+        const div = document.createElement('div');
+        div.className = 'cb-turn user';
+        div.innerHTML =
+            '<div class="role"><span class="role-dot"></span>You</div>' +
+            '<div class="cb-bubble">' + escapeHtml(content) + '</div>';
+        turnsEl.appendChild(div);
+        scrollToEnd();
+    }
+
+    function addAssistantShell() {
+        if (emptyEl) emptyEl.style.display = 'none';
+        const div = document.createElement('div');
+        div.className = 'cb-turn assistant';
+        div.innerHTML =
+            '<div class="role"><span class="role-dot"></span>Assistant</div>' +
+            '<div class="cb-bubble cb-bubble-content"></div>';
+        turnsEl.appendChild(div);
+        scrollToEnd();
+        return div.querySelector('.cb-bubble-content');
+    }
+
+    function addTypingIndicator() {
+        if (emptyEl) emptyEl.style.display = 'none';
+        const div = document.createElement('div');
+        div.className = 'cb-turn assistant cb-pending';
+        div.innerHTML =
+            '<div class="role"><span class="role-dot"></span>Assistant</div>' +
+            '<div class="cb-typing" aria-label="Assistant is typing"><span></span><span></span><span></span></div>';
+        turnsEl.appendChild(div);
+        scrollToEnd();
+        return div;
+    }
+
+    function scrollToEnd() {
+        requestAnimationFrame(() => { stream.scrollTop = stream.scrollHeight; });
+    }
+
+    function showError(msg) {
+        errorEl.textContent = msg;
+        errorEl.classList.add('show');
+        setTimeout(() => errorEl.classList.remove('show'), 5000);
+    }
+
+    function setBusy(b) {
+        busy = b;
+        sendBtn.disabled = b || input.value.trim().length === 0;
+        input.disabled = b;
+    }
+
+    function autoSize() {
+        input.style.height = 'auto';
+        input.style.height = Math.min(input.scrollHeight, 180) + 'px';
+    }
+
+    // Typewriter: reveal the answer a few words at a time so it feels streamed.
+    function streamInto(bubbleEl, fullText, onDone) {
+        const words = fullText.split(/\s+/);
+        let i = 0;
+        let current = '';
+        clearInterval(typingTimer);
+        typingTimer = setInterval(() => {
+            const step = 1 + Math.floor(Math.random() * 2);  // 1–2 words per tick
+            for (let k = 0; k < step && i < words.length; k++, i++) {
+                current += (i > 0 ? ' ' : '') + words[i];
+            }
+            bubbleEl.innerHTML = formatAnswer(current);
+            scrollToEnd();
+            if (i >= words.length) {
+                clearInterval(typingTimer);
+                typingTimer = null;
+                if (onDone) onDone();
+            }
+        }, 35);
+    }
+
+    input.addEventListener('input', () => {
+        autoSize();
+        const len = input.value.length;
+        charCount.textContent = len + '/' + MAX_CHARS;
+        sendBtn.disabled = busy || len === 0 || len > MAX_CHARS;
+    });
+
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            if (!sendBtn.disabled) form.requestSubmit();
+        }
+    });
+
+    // Chip click auto-sends the prompt.
+    suggestions?.addEventListener('click', (e) => {
+        const chip = e.target.closest('.cb-chip');
+        if (!chip || busy) return;
+        input.value = chip.dataset.prompt || '';
+        input.dispatchEvent(new Event('input'));
+        form.requestSubmit();
+    });
+
+    async function send(msg) {
+        addUserTurn(msg);
+        setBusy(true);
+        const typingEl = addTypingIndicator();
+
+        try {
+            const resp = await fetch(ENDPOINT, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrf(),
+                },
+                body: JSON.stringify({ message: msg, session_id: sessionId || null }),
+            });
+
+            const payload = await resp.json().catch(() => ({}));
+            typingEl.remove();
+
+            if (!resp.ok) {
+                showError(payload.error || 'Something went wrong. Please try again.');
+                setBusy(false);
+                return;
+            }
+
+            if (payload.session_id) {
+                sessionId = payload.session_id;
+                localStorage.setItem(SESS_KEY, sessionId);
+            }
+
+            const bubble = addAssistantShell();
+            const fullText = payload.answer || '(no response)';
+            streamInto(bubble, fullText, () => {
+                setBusy(false);
+                input.focus();
+            });
+        } catch (err) {
+            typingEl.remove();
+            showError('Network error — is the service reachable?');
+            setBusy(false);
+        }
+    }
+
+    form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const msg = input.value.trim();
+        if (!msg || busy) return;
+        input.value = '';
+        autoSize();
+        charCount.textContent = '0/' + MAX_CHARS;
+        send(msg);
+    });
+
+    input.focus();
+})();
+</script>
+{% endblock %}
