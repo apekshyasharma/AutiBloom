@@ -1,0 +1,53 @@
+{% extends 'layouts/caregiver_base.html' %}
+{% block caregiver_topbar_title %}Therapy Games{% endblock %}
+{% block caregiver_content %}
+<div class="container py-5">
+    <div class="mb-4">
+        <h2 class="h3 fw-bold text-dark">H5P Therapy Games</h2>
+        <p class="text-muted">Interactive games for skill building and emotional regulation. <span class="fw-semibold text-primary">Note:</span> These activities are supportive and not a medical treatment.</p>
+    </div>
+    
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        {% for game in games %}
+        <div class="col">
+            <div class="card h-100 shadow-sm border-0 rounded-4">
+                {% if game.thumbnail_url %}
+                <img src="{{ game.thumbnail_url }}" class="card-img-top border-bottom" alt="{{ game.title }}" style="height: 180px; object-fit: cover;">
+                {% endif %}
+                <div class="card-body p-4 d-flex flex-column">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h3 class="h5 fw-bold mb-0 text-primary">{{ game.title }}</h3>
+                        <div class="d-flex flex-column align-items-end gap-1">
+                            <span class="badge bg-light text-dark rounded-pill border">Ages {{ game.age_range }}</span>
+                            {% if game.embed_type == 'URL' and game.embed_url or game.embed_type == 'LOCAL' and game.local_embed_path %}
+                            <span class="badge bg-success rounded-pill" style="font-size: 0.70rem;"><i class="bi bi-check-circle me-1"></i>Ready</span>
+                            {% else %}
+                            <span class="badge bg-warning text-dark rounded-pill" style="font-size: 0.70rem;"><i class="bi bi-tools me-1"></i>Pending</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% if game.provider_name %}
+                    <small class="text-muted mb-3 d-block"><i class="bi bi-building me-1"></i>Provided by {{ game.provider_name }}</small>
+                    {% else %}
+                    <div class="mb-3"></div>
+                    {% endif %}
+                    <div class="mb-3">
+                        <span class="badge bg-primary bg-opacity-10 text-primary mb-2"><i class="bi bi-bullseye me-1"></i>Goal: {{ game.goal }}</span>
+                        <p class="card-text text-secondary mb-0" style="font-size: 0.95rem;">{{ game.description }}</p>
+                    </div>
+                    <div class="mt-auto pt-3 border-top">
+                        <a href="{% url 'game_detail' game.slug %}" class="btn btn-primary w-100 rounded-pill shadow-sm">
+                            <i class="bi bi-play-fill me-1"></i> Play Activity
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-5">
+            <p class="text-muted mb-0">No therapy games available at the moment.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
