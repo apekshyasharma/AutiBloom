@@ -27,14 +27,6 @@ def seed_games(apps, schema_editor):
             'age_range': '6–12',
             'description': 'An interactive activity where caregivers and children can arrange daily tasks into a manageable visual sequence.',
             'embed_url': '',
-        },
-        {
-            'title': 'Calm Choices',
-            'slug': 'calm-choices',
-            'goal': 'Practice selecting calm-down strategies',
-            'age_range': '5–15',
-            'description': 'A scenario-based game that guides the child through choosing appropriate coping mechanisms when feeling overwhelmed.',
-            'embed_url': '',
         }
     ]
     for game_data in games:

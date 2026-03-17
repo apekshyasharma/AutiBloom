@@ -4,18 +4,21 @@
 {% block caregiver_content %}
 <div class="container py-4">
     <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3" id="gameHeaderBlock">
         <div>
             <h2 class="h3 fw-bold mb-1 text-dark">{{ game.title }}</h2>
             <div class="d-flex flex-wrap gap-2 mt-2">
-                <span class="badge bg-primary bg-opacity-10 text-primary py-2 px-3 rounded-pill"><i class="bi bi-bullseye me-1"></i>Goal: {{ game.goal }}</span>
+                <span class="badge bg-primary bg-opacity-10 text-primary py-2 px-3 rounded-pill" id="gameGoalBadge"><i class="bi bi-bullseye me-1"></i>Goal: {{ game.goal }}</span>
                 <span class="badge bg-secondary bg-opacity-10 text-secondary py-2 px-3 rounded-pill"><i class="bi bi-person me-1"></i>Ages {{ game.age_range }}</span>
             </div>
         </div>
+        <button onclick="startOnboardingTour()" class="btn btn-outline-info rounded-pill px-3 py-1.5 fw-semibold" id="gameTourReplayCta" style="font-size: 0.85rem; border: 1.5px solid rgba(13,202,240,0.3); background: rgba(13,202,240,0.05); color: #0dcaf0;">
+            <i class="bi bi-compass-fill me-1"></i>How to Play Guide
+        </button>
     </div>
 
     <!-- Note & Instructions -->
-    <div class="alert alert-info border-0 rounded-4 shadow-sm mb-4">
+    <div class="alert alert-info border-0 rounded-4 shadow-sm mb-4" id="instructionsAlert">
         <div class="d-flex align-items-start gap-3 mb-3">
             <i class="bi bi-info-circle-fill fs-3 text-info mt-1"></i>
             <div>
@@ -28,34 +31,211 @@
         </div>
     </div>
 
+    <!-- Style Section -->
+    <style>
+        .game-wrapper {
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            position: relative;
+        }
+        
+        .theater-active {
+            max-width: 100% !important;
+            width: 100% !important;
+            padding-left: 0.75rem !important;
+            padding-right: 0.75rem !important;
+        }
+        .theater-active #gameCard {
+            border-radius: 24px !important;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25) !important;
+        }
+
+        #gameIframe {
+            width: 100%;
+            height: 720px;
+            border: none;
+            display: block;
+        }
+
+        /* Fullscreen styles targeting gameContainer */
+        #gameContainer:-webkit-full-screen {
+            width: 100vw !important;
+            height: 100vh !important;
+            background: #000;
+        }
+        #gameContainer:-webkit-full-screen #gameIframe {
+            width: 100vw !important;
+            height: 100vh !important;
+        }
+
+        #gameContainer:-moz-full-screen {
+            width: 100vw !important;
+            height: 100vh !important;
+            background: #000;
+        }
+        #gameContainer:-moz-full-screen #gameIframe {
+            width: 100vw !important;
+            height: 100vh !important;
+        }
+
+        #gameContainer:-ms-fullscreen {
+            width: 100vw !important;
+            height: 100vh !important;
+            background: #000;
+        }
+        #gameContainer:-ms-fullscreen #gameIframe {
+            width: 100vw !important;
+            height: 100vh !important;
+        }
+
+        .btn-game-control {
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            padding: 0.55rem 1.3rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .btn-game-control:hover {
+            transform: translateY(-1px);
+        }
+
+        /* Onboarding styles */
+        #tour-spotlight {
+          position: fixed;
+          pointer-events: none;
+          z-index: 99998;
+          border-radius: 20px;
+          box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.75);
+          display: none;
+          border: 2px solid var(--teal, #14b8a6);
+        }
+
+        #tour-tooltip {
+          position: absolute;
+          z-index: 99999;
+          width: 320px;
+          background: rgba(15, 23, 42, 0.95);
+          backdrop-filter: blur(16px);
+          -webkit-backdrop-filter: blur(16px);
+          border: 1px solid rgba(255, 255, 255, 0.15);
+          border-radius: 24px;
+          padding: 1.5rem;
+          box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+          color: #fff;
+          display: none;
+          font-family: 'Inter', sans-serif;
+          animation: tour-pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+
+        @keyframes tour-pop {
+          from { opacity: 0; transform: scale(0.9) translateY(10px); }
+          to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .tour-progress {
+          font-size: 0.68rem;
+          font-weight: 700;
+          letter-spacing: 0.12em;
+          text-transform: uppercase;
+          color: var(--teal, #14b8a6);
+          margin-bottom: 0.5rem;
+          display: flex;
+          justify-content: space-between;
+        }
+
+        .tour-title {
+          font-family: 'Plus Jakarta Sans', sans-serif;
+          font-size: 1.15rem;
+          font-weight: 800;
+          margin-bottom: 0.75rem;
+          letter-spacing: -0.02em;
+          line-height: 1.25;
+        }
+
+        .tour-body {
+          font-size: 0.88rem;
+          line-height: 1.5;
+          color: #cbd5e1;
+          margin-bottom: 1.25rem;
+        }
+
+        .tour-footer {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          gap: 0.5rem;
+        }
+
+        .tour-btn {
+          font-size: 0.8rem;
+          font-weight: 700;
+          padding: 0.55rem 1.1rem;
+          border-radius: 10px;
+          cursor: pointer;
+          border: none;
+        }
+
+        .tour-btn-skip {
+          background: transparent;
+          color: #94a3b8;
+          transition: all 0.4s ease;
+        }
+        .tour-btn-skip:hover {
+          color: #fff;
+        }
+
+        .tour-btn-next {
+          background: linear-gradient(135deg, var(--teal, #14b8a6) 0%, #0d9488 100%);
+          color: #fff;
+          box-shadow: 0 4px 12px rgba(20,184,166,0.3);
+          transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .tour-btn-next:hover {
+          transform: translateY(-1px);
+          box-shadow: 0 6px 16px rgba(20,184,166,0.4);
+        }
+    </style>
+
     <!-- Game Embed -->
-    <div class="card shadow-sm border-0 rounded-4 overflow-hidden mb-4 bg-white">
-        <div class="card-body p-0" style="min-height: 40vh; display: flex; align-items: center; justify-content: center;">
-            <div class="w-100">
+    <div class="card shadow-sm border-0 rounded-4 overflow-hidden mb-4 bg-white" id="gameCard">
+        <div class="card-header bg-white border-0 py-3 px-4 d-flex justify-content-between align-items-center flex-wrap gap-2" style="border-bottom: 1px solid rgba(0,0,0,0.05) !important;">
+            <div class="d-flex align-items-center gap-2">
+                <span class="badge rounded-circle p-1.5 bg-success bg-opacity-10 text-success"><i class="bi bi-controller fs-6"></i></span>
+                <span class="fw-bold text-dark" style="font-size: 0.95rem;">Interactive Activity Portal</span>
+            </div>
+            <div class="d-flex gap-2">
+                <button onclick="toggleTheaterMode()" class="btn btn-outline-secondary btn-game-control" id="theaterBtn">
+                    <i class="bi bi-aspect-ratio"></i> <span>Theater Mode</span>
+                </button>
+                {% if game.slug != 'sensory-adventure' %}
+                <button onclick="toggleFullscreen()" class="btn btn-primary btn-game-control">
+                    <i class="bi bi-fullscreen"></i> <span>Go Fullscreen</span>
+                </button>
+                {% endif %}
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <div class="w-100" id="gameContainer">
                 {% if game.embed_type == 'URL' and game.embed_url and "https://" in game.embed_url %}
-                <!-- Responsive 16:9 Wrapper -->
-                <div class="ratio ratio-16x9 bg-dark">
-                    <iframe 
-                        src="{{ game.embed_url }}" 
-                        class="w-100 h-100 border-0"
-                        allowfullscreen="allowfullscreen" 
-                        allow="geolocation *; microphone *; camera *; midi *; encrypted-media *">
-                    </iframe>
-                </div>
+                <iframe 
+                    id="gameIframe"
+                    src="{{ game.embed_url }}" 
+                    allowfullscreen="allowfullscreen" 
+                    allow="geolocation *; microphone *; camera *; midi *; encrypted-media *">
+                </iframe>
                 {% elif game.embed_type == 'LOCAL' and game.local_embed_path %}
-                <!-- Responsive 16:9 Wrapper for LOCAL -->
-                <div class="ratio ratio-16x9 bg-dark">
-                    <iframe 
-                        src="{% static game.local_embed_path %}" 
-                        class="w-100 h-100 border-0"
-                        allowfullscreen="allowfullscreen" 
-                        allow="geolocation *; microphone *; camera *; midi *; encrypted-media *"
-                        sandbox="allow-scripts allow-same-origin allow-forms allow-popups">
-                    </iframe>
-                </div>
+                <iframe 
+                    id="gameIframe"
+                    src="{% static game.local_embed_path %}" 
+                    allowfullscreen="allowfullscreen" 
+                    allow="geolocation *; microphone *; camera *; midi *; encrypted-media *"
+                    sandbox="allow-scripts allow-same-origin allow-forms allow-popups">
+                </iframe>
                 {% else %}
                 <!-- Error State for missing/invalid URL -->
-                <div class="text-center p-5 text-muted bg-light border-bottom border-top">
+                <div class="text-center p-5 text-muted bg-light border-bottom border-top w-100">
                     <div class="bg-white rounded-circle d-inline-flex align-items-center justify-content-center shadow-sm mb-3" style="width: 80px; height: 80px;">
                         <i class="bi bi-cone-striped fs-1 text-warning"></i>
                     </div>
@@ -76,13 +256,251 @@
     </div>
 
     <!-- Navigation Buttons -->
-    <div class="d-flex flex-column flex-md-row justify-content-between gap-3 mt-4 pt-2">
-        <a href="{% url 'game_list' %}" class="btn btn-outline-secondary rounded-pill px-4 py-2 shadow-sm order-2 order-md-1 fw-medium">
+    <div class="d-flex flex-column flex-md-row justify-content-between gap-3 mt-4 pt-2" id="navigationBlock">
+        <a href="{% url 'game_list' %}" class="btn btn-outline-secondary rounded-pill px-4 py-2 shadow-sm order-2 order-md-1 fw-medium" id="backToGamesBtn">
             <i class="bi bi-grid me-2"></i>Back to Games
         </a>
-        <a href="{% url 'game_list' %}" class="btn btn-primary rounded-pill px-4 py-2 shadow-sm order-1 order-md-2 fw-medium">
-            Next Activity <i class="bi bi-arrow-right ms-2"></i>
+        <a href="{% url 'game_list' %}" class="btn btn-primary rounded-pill px-4 py-2 shadow-sm order-1 order-md-2 fw-medium" id="nextActivityBtn">
+            Next Activity
         </a>
     </div>
 </div>
+
+<!-- Onboarding Tour Script -->
+<script>
+    const GAME_TOUR_STEPS = [
+      {
+        title: "Activity Focus & Target 🎯",
+        body: "This badge displays the developmental goal (like matching core emotions) and suggested age range to help guide your session.",
+        target: "#gameGoalBadge"
+      },
+      {
+        title: "Step-by-Step Play Guide 💡",
+        body: "Use this guide to support your child. Look at the character card, ask what they feel, and guide them to match or drag it to the correct word.",
+        target: "#instructionsAlert"
+      },
+      {
+        title: "Game Workspace 🧩",
+        body: "Here is the interactive game window. You can toggle <strong>Theater Mode</strong> to widen the view or <strong>Go Fullscreen</strong> for a distraction-free play session.",
+        target: "#gameCard"
+      },
+      {
+        title: "Navigation Controls 🚀",
+        body: "When you finish the activity, use these buttons to return to the catalog or move to the next scheduled game.",
+        target: "#navigationBlock"
+      }
+    ];
+
+    class AutiBloomOnboarding {
+      constructor(steps, role) {
+        this.steps = steps;
+        this.role = role;
+        this.currentStep = 0;
+        this.spotlight = null;
+        this.tooltip = null;
+        this.isActive = false;
+        this._rafId = null;
+      }
+
+      init() {
+        if (!document.getElementById('tour-spotlight')) {
+          this.spotlight = document.createElement('div');
+          this.spotlight.id = 'tour-spotlight';
+          document.body.appendChild(this.spotlight);
+        } else {
+          this.spotlight = document.getElementById('tour-spotlight');
+        }
+
+        if (!document.getElementById('tour-tooltip')) {
+          this.tooltip = document.createElement('div');
+          this.tooltip.id = 'tour-tooltip';
+          document.body.appendChild(this.tooltip);
+        } else {
+          this.tooltip = document.getElementById('tour-tooltip');
+        }
+
+        this.isActive = true;
+        this.showStep();
+        this.startUpdateLoop();
+      }
+
+      startUpdateLoop() {
+        const loop = () => {
+          if (!this.isActive) return;
+          
+          const step = this.steps[this.currentStep];
+          if (step.target) {
+            const targetEl = document.querySelector(step.target);
+            if (targetEl) {
+              this.highlight(targetEl);
+              this.positionTooltip(targetEl);
+            } else {
+              this.removeHighlight();
+              this.centerTooltip();
+            }
+          } else {
+            this.removeHighlight();
+            this.centerTooltip();
+          }
+          
+          this._rafId = requestAnimationFrame(loop);
+        };
+        this._rafId = requestAnimationFrame(loop);
+      }
+
+      showStep() {
+        const step = this.steps[this.currentStep];
+        const isLast = this.currentStep === this.steps.length - 1;
+
+        if (step.target) {
+          const targetEl = document.querySelector(step.target);
+          if (targetEl) {
+            targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }
+
+        this.tooltip.innerHTML = `
+          <div class="tour-progress">
+            <span>Step ${this.currentStep + 1} of ${this.steps.length}</span>
+            <span style="color: rgba(255,255,255,0.4)">${this.role}</span>
+          </div>
+          <h4 class="tour-title">${step.title}</h4>
+          <p class="tour-body">${step.body}</p>
+          <div class="tour-footer">
+            <button class="tour-btn tour-btn-skip" onclick="window.activeTour.skip()">${isLast ? 'Dismiss' : 'Skip'}</button>
+            <div style="display:flex; gap:0.5rem;">
+              ${this.currentStep > 0 ? `<button class="tour-btn tour-btn-skip" style="color:#fff;" onclick="window.activeTour.prev()">Back</button>` : ''}
+              <button class="tour-btn tour-btn-next" onclick="window.activeTour.next()">${isLast ? 'Start Playing 🎮' : 'Next'}</button>
+            </div>
+          </div>
+        `;
+
+        this.tooltip.style.display = 'block';
+      }
+
+      highlight(el) {
+        const rect = el.getBoundingClientRect();
+        this.spotlight.style.display = 'block';
+        this.spotlight.style.top = `${rect.top - 8}px`;
+        this.spotlight.style.left = `${rect.left - 8}px`;
+        this.spotlight.style.width = `${rect.width + 16}px`;
+        this.spotlight.style.height = `${rect.height + 16}px`;
+      }
+
+      removeHighlight() {
+        this.spotlight.style.display = 'none';
+      }
+
+      centerTooltip() {
+        this.tooltip.style.position = 'fixed';
+        this.tooltip.style.top = '50%';
+        this.tooltip.style.left = '50%';
+        this.tooltip.style.transform = 'translate(-50%, -50%)';
+        this.tooltip.style.boxShadow = '0 30px 90px rgba(0,0,0,0.8)';
+      }
+
+      positionTooltip(targetEl) {
+        if (!targetEl) {
+          this.centerTooltip();
+          return;
+        }
+
+        const rect = targetEl.getBoundingClientRect();
+        this.tooltip.style.position = 'absolute';
+        this.tooltip.style.transform = 'none';
+
+        let top = rect.bottom + window.scrollY + 16;
+        let left = rect.left + window.scrollX + (rect.width - 320) / 2;
+
+        if (left < 16) left = 16;
+        if (left + 320 > window.innerWidth - 16) {
+          left = window.innerWidth - 320 - 16;
+        }
+
+        this.tooltip.style.top = `${top}px`;
+        this.tooltip.style.left = `${left}px`;
+      }
+
+      next() {
+        if (this.currentStep < this.steps.length - 1) {
+          this.currentStep++;
+          this.showStep();
+        } else {
+          this.complete();
+        }
+      }
+
+      prev() {
+        if (this.currentStep > 0) {
+          this.currentStep--;
+          this.showStep();
+        }
+      }
+
+      skip() {
+        this.complete();
+      }
+
+      complete() {
+        this.isActive = false;
+        if (this._rafId) cancelAnimationFrame(this._rafId);
+        if (this.spotlight) this.spotlight.style.display = 'none';
+        if (this.tooltip) this.tooltip.style.display = 'none';
+      }
+    }
+
+    function startOnboardingTour() {
+      if (window.activeTour) window.activeTour.complete();
+      const tour = new AutiBloomOnboarding(GAME_TOUR_STEPS, "Caregiver Guide");
+      window.activeTour = tour;
+      tour.init();
+    }
+
+    // Controls for Theater & Fullscreen Mode
+    function toggleTheaterMode() {
+        const container = document.querySelector('.container.py-4');
+        const btn = document.getElementById('theaterBtn');
+        if (container) {
+            container.classList.toggle('theater-active');
+            if (container.classList.contains('theater-active')) {
+                btn.innerHTML = '<i class="bi bi-aspect-ratio-fill"></i> <span>Default Mode</span>';
+                btn.classList.replace('btn-outline-secondary', 'btn-secondary');
+            } else {
+                btn.innerHTML = '<i class="bi bi-aspect-ratio"></i> <span>Theater Mode</span>';
+                btn.classList.replace('btn-secondary', 'btn-outline-secondary');
+            }
+            window.dispatchEvent(new Event('resize'));
+        }
+    }
+
+    function toggleFullscreen() {
+        const elem = document.getElementById('gameContainer');
+        if (!elem) return;
+
+        if (!document.fullscreenElement && 
+            !document.webkitFullscreenElement && 
+            !document.mozFullScreenElement && 
+            !document.msFullscreenElement) {
+            if (elem.requestFullscreen) {
+                elem.requestFullscreen();
+            } else if (elem.webkitRequestFullscreen) {
+                elem.webkitRequestFullscreen();
+            } else if (elem.mozRequestFullScreen) {
+                elem.mozRequestFullScreen();
+            } else if (elem.msRequestFullscreen) {
+                elem.msRequestFullscreen();
+            }
+        } else {
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            } else if (document.webkitExitFullscreen) {
+                document.webkitExitFullscreen();
+            } else if (document.mozCancelFullScreen) {
+                document.mozCancelFullScreen();
+            } else if (document.msExitFullscreen) {
+                document.msExitFullscreen();
+            }
+        }
+    }
+</script>
 {% endblock %}

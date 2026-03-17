@@ -2,14 +2,19 @@
 {% block caregiver_topbar_title %}Therapy Games{% endblock %}
 {% block caregiver_content %}
 <div class="container py-5">
-    <div class="mb-4">
-        <h2 class="h3 fw-bold text-dark">H5P Therapy Games</h2>
-        <p class="text-muted">Interactive games for skill building and emotional regulation. <span class="fw-semibold text-primary">Note:</span> These activities are supportive and not a medical treatment.</p>
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3" id="gamesHeaderBlock">
+        <div>
+            <h2 class="h3 fw-bold text-dark mb-1">H5P Therapy Games</h2>
+            <p class="text-muted mb-0">Interactive games for skill building and emotional regulation. <span class="fw-semibold text-primary">Note:</span> These activities are supportive and not a medical treatment.</p>
+        </div>
+        <button onclick="startGameTour()" class="btn btn-outline-info rounded-pill px-3 py-1.5 fw-semibold" id="gamesTourReplayCta" style="font-size: 0.85rem; border: 1.5px solid rgba(13,202,240,0.3); background: rgba(13,202,240,0.05); color: #0dcaf0;">
+            <i class="bi bi-compass-fill me-1"></i>Take a Tour
+        </button>
     </div>
     
     <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
         {% for game in games %}
-        <div class="col">
+        <div class="col" {% if forloop.first %}id="firstGameCard"{% endif %}>
             <div class="card h-100 shadow-sm border-0 rounded-4">
                 {% if game.thumbnail_url %}
                 <img src="{{ game.thumbnail_url }}" class="card-img-top border-bottom" alt="{{ game.title }}" style="height: 180px; object-fit: cover;">
@@ -32,11 +37,11 @@
                     <div class="mb-3"></div>
                     {% endif %}
                     <div class="mb-3">
-                        <span class="badge bg-primary bg-opacity-10 text-primary mb-2"><i class="bi bi-bullseye me-1"></i>Goal: {{ game.goal }}</span>
+                        <span class="badge bg-primary bg-opacity-10 text-primary mb-2" {% if forloop.first %}id="firstGameGoalBadge"{% endif %}><i class="bi bi-bullseye me-1"></i>Goal: {{ game.goal }}</span>
                         <p class="card-text text-secondary mb-0" style="font-size: 0.95rem;">{{ game.description }}</p>
                     </div>
                     <div class="mt-auto pt-3 border-top">
-                        <a href="{% url 'game_detail' game.slug %}" class="btn btn-primary w-100 rounded-pill shadow-sm">
+                        <a href="{% url 'game_detail' game.slug %}" class="btn btn-primary w-100 rounded-pill shadow-sm" {% if forloop.first %}id="firstGamePlayBtn"{% endif %}>
                             <i class="bi bi-play-fill me-1"></i> Play Activity
                         </a>
                     </div>
@@ -50,4 +55,303 @@
         {% endfor %}
     </div>
 </div>
+
+<!-- Onboarding Tour Styles -->
+<style>
+    #tour-spotlight {
+      position: fixed;
+      pointer-events: none;
+      z-index: 99998;
+      border-radius: 20px;
+      box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.75);
+      display: none;
+      border: 2px solid var(--teal, #14b8a6);
+    }
+
+    #tour-tooltip {
+      position: absolute;
+      z-index: 99999;
+      width: 320px;
+      background: rgba(15, 23, 42, 0.95);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 24px;
+      padding: 1.5rem;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+      color: #fff;
+      display: none;
+      font-family: 'Inter', sans-serif;
+      animation: tour-pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    }
+
+    @keyframes tour-pop {
+      from { opacity: 0; transform: scale(0.9) translateY(10px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    .tour-progress {
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--teal, #14b8a6);
+      margin-bottom: 0.5rem;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .tour-title {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 1.15rem;
+      font-weight: 800;
+      margin-bottom: 0.75rem;
+      letter-spacing: -0.02em;
+      line-height: 1.25;
+    }
+
+    .tour-body {
+      font-size: 0.88rem;
+      line-height: 1.5;
+      color: #cbd5e1;
+      margin-bottom: 1.25rem;
+    }
+
+    .tour-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .tour-btn {
+      font-size: 0.8rem;
+      font-weight: 700;
+      padding: 0.5rem 1rem;
+      border-radius: 10px;
+      cursor: pointer;
+      border: none;
+    }
+
+    .tour-btn-skip {
+      background: transparent;
+      color: #94a3b8;
+      transition: all 0.4s ease;
+    }
+    .tour-btn-skip:hover {
+      color: #fff;
+    }
+
+    .tour-btn-next {
+      background: linear-gradient(135deg, var(--teal, #14b8a6) 0%, #0d9488 100%);
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(20,184,166,0.3);
+      transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .tour-btn-next:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(20,184,166,0.4);
+    }
+</style>
+
+<!-- Onboarding Tour Script -->
+<script>
+    const GAME_TOUR_STEPS = [
+      {
+        title: "Therapy Games Space 🎮",
+        body: "Welcome to AutiBloom's Activity Catalog! Here you can explore clinical-grade developmental games tailored for emotional regulation and cognitive growth.",
+        target: "#gamesHeaderBlock"
+      },
+      {
+        title: "Developmental Targets 🎯",
+        body: "Each game displays its specific target focus (e.g. learning goals like matching core emotions) and suggested age range to help you find the best fit.",
+        target: "#firstGameGoalBadge"
+      },
+      {
+        title: "Ready to Play 🧩",
+        body: "Click <strong>Play Activity</strong> on any game card to launch it! There you can view step-by-step instructions on how to play together, expand the screen in Theater Mode, or launch Fullscreen play.",
+        target: "#firstGamePlayBtn"
+      }
+    ];
+
+    class AutiBloomOnboarding {
+      constructor(steps, role) {
+        this.steps = steps;
+        this.role = role;
+        this.currentStep = 0;
+        this.spotlight = null;
+        this.tooltip = null;
+        this.isActive = false;
+        this._rafId = null;
+      }
+
+      init() {
+        if (!document.getElementById('tour-spotlight')) {
+          this.spotlight = document.createElement('div');
+          this.spotlight.id = 'tour-spotlight';
+          document.body.appendChild(this.spotlight);
+        } else {
+          this.spotlight = document.getElementById('tour-spotlight');
+        }
+
+        if (!document.getElementById('tour-tooltip')) {
+          this.tooltip = document.createElement('div');
+          this.tooltip.id = 'tour-tooltip';
+          document.body.appendChild(this.tooltip);
+        } else {
+          this.tooltip = document.getElementById('tour-tooltip');
+        }
+
+        this.isActive = true;
+        this.showStep();
+        this.startUpdateLoop();
+      }
+
+      startUpdateLoop() {
+        const loop = () => {
+          if (!this.isActive) return;
+          
+          const step = this.steps[this.currentStep];
+          if (step.target) {
+            const targetEl = document.querySelector(step.target);
+            if (targetEl) {
+              this.highlight(targetEl);
+              this.positionTooltip(targetEl);
+            } else {
+              this.removeHighlight();
+              this.centerTooltip();
+            }
+          } else {
+            this.removeHighlight();
+            this.centerTooltip();
+          }
+          
+          this._rafId = requestAnimationFrame(loop);
+        };
+        this._rafId = requestAnimationFrame(loop);
+      }
+
+      showStep() {
+        const step = this.steps[this.currentStep];
+        const isLast = this.currentStep === this.steps.length - 1;
+
+        if (step.target) {
+          const targetEl = document.querySelector(step.target);
+          if (targetEl) {
+            targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }
+
+        this.tooltip.innerHTML = `
+          <div class="tour-progress">
+            <span>Step ${this.currentStep + 1} of ${this.steps.length}</span>
+            <span style="color: rgba(255,255,255,0.4)">${this.role}</span>
+          </div>
+          <h4 class="tour-title">${step.title}</h4>
+          <p class="tour-body">${step.body}</p>
+          <div class="tour-footer">
+            <button class="tour-btn tour-btn-skip" onclick="window.activeTour.skip()">${isLast ? 'Dismiss' : 'Skip'}</button>
+            <div style="display:flex; gap:0.5rem;">
+              ${this.currentStep > 0 ? `<button class="tour-btn tour-btn-skip" style="color:#fff;" onclick="window.activeTour.prev()">Back</button>` : ''}
+              <button class="tour-btn tour-btn-next" onclick="window.activeTour.next()">${isLast ? 'Explore Catalog 🎮' : 'Next'}</button>
+            </div>
+          </div>
+        `;
+
+        this.tooltip.style.display = 'block';
+      }
+
+      highlight(el) {
+        const rect = el.getBoundingClientRect();
+        this.spotlight.style.display = 'block';
+        this.spotlight.style.top = `${rect.top - 8}px`;
+        this.spotlight.style.left = `${rect.left - 8}px`;
+        this.spotlight.style.width = `${rect.width + 16}px`;
+        this.spotlight.style.height = `${rect.height + 16}px`;
+      }
+
+      removeHighlight() {
+        this.spotlight.style.display = 'none';
+      }
+
+      centerTooltip() {
+        this.tooltip.style.position = 'fixed';
+        this.tooltip.style.top = '50%';
+        this.tooltip.style.left = '50%';
+        this.tooltip.style.transform = 'translate(-50%, -50%)';
+        this.tooltip.style.boxShadow = '0 30px 90px rgba(0,0,0,0.8)';
+      }
+
+      positionTooltip(targetEl) {
+        if (!targetEl) {
+          this.centerTooltip();
+          return;
+        }
+
+        const rect = targetEl.getBoundingClientRect();
+        this.tooltip.style.position = 'absolute';
+        this.tooltip.style.transform = 'none';
+
+        let top = rect.bottom + window.scrollY + 16;
+        let left = rect.left + window.scrollX + (rect.width - 320) / 2;
+
+        if (left < 16) left = 16;
+        if (left + 320 > window.innerWidth - 16) {
+          left = window.innerWidth - 320 - 16;
+        }
+
+        if (rect.bottom + 250 > window.innerHeight) {
+          top = rect.top + window.scrollY - this.tooltip.offsetHeight - 160; 
+          if (top < window.scrollY + 16) {
+            top = rect.bottom + window.scrollY + 16;
+          }
+        }
+
+        this.tooltip.style.top = `${top}px`;
+        this.tooltip.style.left = `${left}px`;
+      }
+
+      next() {
+        if (this.currentStep < this.steps.length - 1) {
+          this.currentStep++;
+          this.showStep();
+        } else {
+          this.finish();
+        }
+      }
+
+      prev() {
+        if (this.currentStep > 0) {
+          this.currentStep--;
+          this.showStep();
+        }
+      }
+
+      skip() {
+        this.finish();
+      }
+
+      finish() {
+        this.isActive = false;
+        if (this._rafId) cancelAnimationFrame(this._rafId);
+        this.tooltip.style.display = 'none';
+        this.spotlight.style.display = 'none';
+        localStorage.setItem('autibloom_games_list_tour_completed', 'true');
+      }
+    }
+
+    function startGameTour() {
+      window.activeTour = new AutiBloomOnboarding(GAME_TOUR_STEPS, 'GAME GUIDE');
+      window.activeTour.init();
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const completed = localStorage.getItem('autibloom_games_list_tour_completed');
+      if (!completed) {
+        setTimeout(() => {
+          startGameTour();
+        }, 1200);
+      }
+    });
+</script>
 {% endblock %}
