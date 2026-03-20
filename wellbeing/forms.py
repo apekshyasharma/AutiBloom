@@ -33,10 +33,17 @@ class ChildProfileForm(forms.ModelForm):
         import datetime
         dob = self.cleaned_data.get('date_of_birth')
         if dob:
-            if dob > datetime.date.today():
+            today = datetime.date.today()
+            # Calculate clinical bounds (1.5 years and 11 years ago)
+            max_dob = today - datetime.timedelta(days=548) # 18 months
+            min_dob = today - datetime.timedelta(days=4018) # 11 years
+            
+            if dob > today:
                 raise forms.ValidationError("Date of birth cannot be in the future.")
-            if dob < datetime.date(2000, 1, 1):
-                raise forms.ValidationError("Date of birth must be after January 1, 2000.")
+            if dob > max_dob:
+                raise forms.ValidationError("AutiBloom is designed for children aged 1.5 to 11 years. Your child must be at least 18 months old.")
+            if dob < min_dob:
+                raise forms.ValidationError("AutiBloom is designed for children aged 1.5 to 11 years. Your child must be under 11 years old.")
         return dob
 
 class WeeklyWellbeingAnswerForm(forms.ModelForm):

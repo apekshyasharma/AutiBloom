@@ -1,4 +1,4 @@
-﻿import os
+import os
 import json
 from google import genai
 from google.genai import types
@@ -10,26 +10,38 @@ DOMAIN_LABELS = {
     "sensory_behaviors": "Sensory Behaviors",
 }
 
-def call_gemma_model(prompt: str) -> str:
+def call_gemma_model(prompt: str, fallback_text: str = "") -> str:
     api_key = os.environ.get("GEMINI_API_KEY")
     if not api_key:
-        return "Unable to generate AI summary because GEMINI_API_KEY is not set."
+        return fallback_text or "Unable to generate AI summary because GEMINI_API_KEY is not set."
         
     client = genai.Client(api_key=api_key)
-    model = "gemma-3-27b-it"
-    
-    try:
-        resp = client.models.generate_content(
-            model=model,
-            contents=prompt,
-            config=types.GenerateContentConfig(
-                temperature=0.2,
-                max_output_tokens=800
-            ),
-        )
-        return resp.text
-    except Exception as e:
-        return f"Unable to generate AI summary at this time: {str(e)}"
+
+    last_err = None
+    for model in ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-flash-latest"]:
+        try:
+            cfg_kwargs = dict(temperature=0.2, max_output_tokens=1500)
+            # Disable Gemini 2.5 "thinking" so the token budget is spent on visible
+            # output, not on internal reasoning that truncates the answer.
+            if model.startswith("gemini-2.5"):
+                try:
+                    cfg_kwargs["thinking_config"] = types.ThinkingConfig(thinking_budget=0)
+                except Exception:
+                    pass
+            resp = client.models.generate_content(
+                model=model,
+                contents=prompt,
+                config=types.GenerateContentConfig(**cfg_kwargs),
+            )
+            if resp.text:
+                return resp.text
+        except Exception as e:
+            last_err = e
+            continue
+    if last_err is not None:
+        print(f"[narrative] All Gemini model calls failed; last error: {last_err}")
+
+    return fallback_text or "Unable to generate AI summary at this time."
 
 def build_soap_note(trend_summary: dict, prediction) -> str:
     """Build an AI-powered SOAP medical note using Gemma-3-27B-IT."""
@@ -62,7 +74,18 @@ CONTEXT DATA:
 {trend_data}
 
 Write the SOAP note now:"""
-    return call_gemma_model(prompt)
+
+    fallback_text = f"""Subjective: Caregiver reports weekly check-in data for tracking wellbeing. Child's overall caregiver-reported score is {overall} / 4.0. Concern noted in the following domains: {domains_str}.
+
+Objective: Screening tool processed the caregiver answers. Out of 10 items flagged for risk patterns, {risk_count} / 10 were positive for potential developmental risk. Weekly trends show: {trend_data}.
+
+Assessment: Screening support tool analysis indicates focused concern in {domains_str}. These indicators suggest active patterns that benefit from targeted behavioral tracking.
+
+Plan: Caregiver is advised to monitor flagged domains closely. Recommend sharing the generated clinical summary with a pediatrician or speech/occupational therapist. Maintain weekly wellbeing check-ins to monitor trends.
+
+Disclaimer: AutiBloom's insights are a screening support tool designed to identify patterns, not a clinical diagnosis. Always consult a qualified healthcare or developmental professional for medical advice and evaluation."""
+
+    return call_gemma_model(prompt, fallback_text)
 
 def build_narrative(trend_summary: dict, prediction) -> str:
     """Build an AI-powered narrative summary using Gemma-3-27B-IT."""
@@ -100,4 +123,12 @@ CONTEXT DATA:
 Based strictly on the rules and data above, write the parent summary narrative now. 
 Disclaimer: AutiBloom's insights are a screening support tool designed to identify patterns, not a clinical diagnosis. Always consult a qualified healthcare or developmental professional for medical advice and evaluation. Add this at the end of the text.
 """
-    return call_gemma_model(prompt)
+
+    fallback_text = f"""Parent Summary:
+We appreciate your dedication to tracking your child's developmental journey. This week, the weekly check-in showed an overall wellbeing score of {overall} out of 4.0, with {risk_count} focus areas flagged by the model. The flagged areas of note are: {domains_str}. Rule-based analysis notes: "{friendly_summary}".
+
+We encourage you to observe how your child navigates routines and communication over the coming days. If you notice persistent high-concern patterns or feel overwhelmed, sharing these weekly tracking summaries with your pediatrician, developmental therapist, or school support team can be a great way to start collaborative care planning.
+
+Disclaimer: AutiBloom's insights are a screening support tool designed to identify patterns, not a clinical diagnosis. Always consult a qualified healthcare or developmental professional for medical advice and evaluation."""
+
+    return call_gemma_model(prompt, fallback_text)

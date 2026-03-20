@@ -428,7 +428,7 @@
                                 <div></div>
                                 {% endif %}
                                 <button type="button" class="btn btn-ob-next" onclick="obNext()">
-                                    Continue <i class="bi bi-arrow-right ms-1"></i>
+                                    Continue
                                 </button>
                             </div>
                         </div>
@@ -499,7 +499,7 @@
                                     <i class="bi bi-arrow-left me-1"></i> Back
                                 </button>
                                 <button type="button" class="btn btn-ob-next" onclick="obNext()">
-                                    Continue <i class="bi bi-arrow-right ms-1"></i>
+                                    Continue
                                 </button>
                             </div>
                         </div>
@@ -554,12 +554,23 @@
     const panels = document.querySelectorAll('.ob-panel');
     const steps  = document.querySelectorAll('.ob-step');
 
-    // ── Set dynamic max for DOB (today) ──
+    // Helper to format Date as YYYY-MM-DD
+    function formatDateStr(date) {
+        const y = date.getFullYear();
+        const m = String(date.getMonth() + 1).padStart(2, '0');
+        const d = String(date.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
+    }
+
+    // ── Set dynamic max and min calendar choices for 1.5 to 11 years ──
     const dobInput = document.getElementById('id_date_of_birth');
     const dobError = document.getElementById('dobError');
     const today = new Date();
-    const todayStr = today.toISOString().split('T')[0];
-    dobInput.setAttribute('max', todayStr);
+    const maxDate = new Date(today.getFullYear(), today.getMonth() - 18, today.getDate()); // 18 months ago
+    const minDate = new Date(today.getFullYear() - 11, today.getMonth(), today.getDate());     // 11 years ago
+    
+    dobInput.setAttribute('max', formatDateStr(maxDate));
+    dobInput.setAttribute('min', formatDateStr(minDate));
 
     function showStep(idx) {
         panels.forEach(p => p.classList.remove('active'));
@@ -582,8 +593,15 @@
             dobError.textContent = '';
             return true;
         }
-        const dob = new Date(val);
-        const minDate = new Date('2000-01-01');
+
+        const parts = val.split('-');
+        if (parts.length !== 3) {
+            dobInput.classList.add('is-invalid');
+            dobError.textContent = 'Please enter a valid date.';
+            dobError.classList.add('show');
+            return false;
+        }
+        const dob = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
 
         if (isNaN(dob.getTime())) {
             dobInput.classList.add('is-invalid');
@@ -591,15 +609,27 @@
             dobError.classList.add('show');
             return false;
         }
-        if (dob > today) {
+
+        const dobMidnight = new Date(dob.getFullYear(), dob.getMonth(), dob.getDate());
+        const todayMidnight = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+        const minMidnight = new Date(minDate.getFullYear(), minDate.getMonth(), minDate.getDate());
+        const maxMidnight = new Date(maxDate.getFullYear(), maxDate.getMonth(), maxDate.getDate());
+
+        if (dobMidnight > todayMidnight) {
             dobInput.classList.add('is-invalid');
             dobError.textContent = 'Date of birth cannot be in the future.';
             dobError.classList.add('show');
             return false;
         }
-        if (dob < minDate) {
+        if (dobMidnight > maxMidnight) {
             dobInput.classList.add('is-invalid');
-            dobError.textContent = 'Date of birth must be after January 1, 2000.';
+            dobError.textContent = 'AutiBloom is designed for children aged 1.5 to 11 years. Your child must be at least 18 months old.';
+            dobError.classList.add('show');
+            return false;
+        }
+        if (dobMidnight < minMidnight) {
+            dobInput.classList.add('is-invalid');
+            dobError.textContent = 'AutiBloom is designed for children aged 1.5 to 11 years. Your child must be under 11 years old.';
             dobError.classList.add('show');
             return false;
         }

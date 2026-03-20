@@ -250,7 +250,6 @@ h1,h2,h3,h4 { font-family: 'Plus Jakarta Sans', sans-serif; }
           <th>Sensory</th>
           <th>Submitted</th>
           <th>Report</th>
-          <th>Prediction</th>
         </tr>
       </thead>
       <tbody>
@@ -293,13 +292,6 @@ h1,h2,h3,h4 { font-family: 'Plus Jakarta Sans', sans-serif; }
                class="btn btn-sm btn-outline-secondary rounded-pill" title="View Report">
               <i class="bi bi-file-earmark-pdf"></i>
             </a>
-          </td>
-
-          <!-- Prediction Column -->
-          <td>
-            <div id="pred-cell-{{ entry.id }}">
-              <!-- Populated by JS below -->
-            </div>
           </td>
         </tr>
         {% endfor %}
