@@ -27,6 +27,6 @@ retrieval:
   chunking_mode_default: "semantic"  # fixed | semantic | both | auto
 
 llm:
-  model: "gemma-3-27b-it"
+  model: "gemini-2.5-flash"
   temperature: 0.2
   max_output_tokens: 800

@@ -81,7 +81,7 @@ def load_settings(config_path: str = "configs/default.yaml") -> Settings:
         max_per_doc=int(retrieval.get("max_per_doc", 2)),
         chunking_mode_default=str(retrieval.get("chunking_mode_default", "semantic")),
 
-        llm_model=str(llm.get("model", "gemma-3-27b-it")),
+        llm_model=str(llm.get("model", "gemini-2.5-flash")),
         temperature=float(llm.get("temperature", 0.2)),
         max_output_tokens=int(llm.get("max_output_tokens", 800)),
     )

@@ -5,7 +5,7 @@ class GemmaClient:
     """
     Calls Gemma-3-27B-IT via Gemini API using google-genai SDK.
     """
-    def __init__(self, api_key: str, model: str = "gemma-3-27b-it"):
+    def __init__(self, api_key: str, model: str = "gemini-2.5-flash"):
         self.client = genai.Client(api_key=api_key)
         self.model = model
 
