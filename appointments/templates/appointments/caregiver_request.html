@@ -193,13 +193,16 @@
 
             <!-- Submit -->
             <button type="submit" class="btn w-100 rounded-pill fw-bold py-3 shadow mt-2 mb-5" style="background: linear-gradient(135deg, #34d399, #059669); color: #fff; font-size: 1.1rem; border: none;">
-                Submit Request <i class="bi bi-arrow-right ms-2"></i>
+                Submit Request
             </button>
         </form>
         {% endif %}
     </div>
 </div>
 
+{% endblock %}
+
+{% block caregiver_extra_js %}
 <script>
 // Highlight active reason card
 function updateReasonCards() {
@@ -216,9 +219,11 @@ document.querySelectorAll('#reason-cards input[type="radio"]').forEach(function(
 });
 updateReasonCards();
 
-// Bootstrap tooltips
-var tt = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-tt.map(function(el) { return new bootstrap.Tooltip(el); });
+// Bootstrap tooltips (guarded — bundle is loaded by base.html but defensive in case it isn't)
+if (typeof bootstrap !== 'undefined' && bootstrap.Tooltip) {
+    var tt = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tt.map(function(el) { return new bootstrap.Tooltip(el); });
+}
 
 // Live preview of selected PDFs
 (function () {

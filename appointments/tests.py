@@ -104,6 +104,7 @@ class AppointmentsTestCase(TestCase):
         
     def test_clinician_report_json(self):
         self.appt1.entry = self.entry_sub
+        self.appt1.status = 'CONFIRMED'
         self.appt1.save()
         
         self.client.login(username='cl1', password='pw')

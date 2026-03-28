@@ -36,17 +36,7 @@
     </span>
 </div>
 
-{% if messages %}
-<div class="mb-3">
-    {% for message in messages %}
-    <div class="alert {% if 'success' in message.tags %}alert-success{% elif 'error' in message.tags %}alert-danger{% elif 'warning' in message.tags %}alert-warning{% else %}alert-info{% endif %} alert-dismissible fade show rounded-4 border-0 shadow-sm" role="alert">
-        <i class="bi {% if 'success' in message.tags %}bi-check-circle-fill{% elif 'error' in message.tags %}bi-exclamation-triangle-fill{% elif 'warning' in message.tags %}bi-exclamation-circle-fill{% else %}bi-info-circle-fill{% endif %} me-2"></i>
-        {{ message }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-    {% endfor %}
-</div>
-{% endif %}
+
 
 <form method="post" action="{% url 'clinician_write_review' appointment.id %}" id="reviewForm">
     {% csrf_token %}

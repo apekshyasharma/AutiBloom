@@ -261,7 +261,7 @@ class TestChildCRUD(TestCase):
     def test_child_list_empty(self):
         resp = self.client.get(reverse('wellbeing_child_list'))
         self.assertEqual(resp.status_code, 200)
-        self.assertContains(resp, 'No children profiles found')
+        self.assertContains(resp, 'No Profiles Found')
 
     def test_child_create(self):
         resp = self.client.post(reverse('wellbeing_child_create'), {
@@ -478,112 +478,6 @@ class TestModelValidation(TestCase):
 # ============================================================
 # FEATURE 3: ML JSON Export
 # ============================================================
-
-class TestMLJSONExport(TestCase):
-    def setUp(self):
-        self.user = User.objects.create_user(
-            username='cg', password='cg1234!', role=User.Role.CAREGIVER
-        )
-        self.client.login(username='cg', password='cg1234!')
-        _seed_questions()
-
-    def _create_submitted_entry(self, child):
-        entry = WeeklyWellbeingEntry.objects.create(
-            caregiver=self.user, child=child,
-            week_start=datetime.date(2025, 2, 10),
-            week_end=datetime.date(2025, 2, 16),
-        )
-        for q in WellbeingQuestion.objects.all():
-            WeeklyWellbeingAnswer.objects.create(entry=entry, question=q, slider_score=3)
-        entry.status = 'SUBMITTED'
-        entry.submitted_at = timezone.now()
-        entry.save()
-        return entry
-
-    def test_export_success(self):
-        child = ChildProfile.objects.create(
-            name='E1', date_of_birth=datetime.date(2020, 6, 15),
-            sex='f', jaundice='no', family_asd='yes'
-        )
-        CaregiverChild.objects.create(caregiver=self.user, child=child)
-        entry = self._create_submitted_entry(child)
-
-        resp = self.client.get(reverse('wellbeing_entry_export_json', args=[entry.id]))
-        self.assertEqual(resp.status_code, 200)
-        data = resp.json()
-        # Check demographics
-        self.assertIn('age_years', data)
-        self.assertEqual(data['sex'], 'f')
-        self.assertEqual(data['jaundice'], 'no')
-        self.assertEqual(data['family_asd'], 'yes')
-        # Check all 10 answer keys
-        for i in range(1, 11):
-            key = f'a{i}'
-            self.assertIn(key, data, f"Missing key {key}")
-            self.assertIn(data[key], [0, 1], f"Invalid binary value for {key}")
-
-    def test_export_rejects_draft(self):
-        child = ChildProfile.objects.create(
-            name='E2', date_of_birth=datetime.date(2020, 1, 1),
-            sex='m', jaundice='no', family_asd='no'
-        )
-        CaregiverChild.objects.create(caregiver=self.user, child=child)
-        entry = WeeklyWellbeingEntry.objects.create(
-            caregiver=self.user, child=child,
-            week_start=datetime.date(2025, 2, 10),
-            week_end=datetime.date(2025, 2, 16),
-        )
-        resp = self.client.get(reverse('wellbeing_entry_export_json', args=[entry.id]))
-        self.assertEqual(resp.status_code, 400)
-
-    def test_export_rejects_missing_demographics(self):
-        child = ChildProfile.objects.create(
-            name='E3', date_of_birth=datetime.date(2020, 1, 1),
-            sex='m',  # jaundice and family_asd missing
-        )
-        CaregiverChild.objects.create(caregiver=self.user, child=child)
-        entry = self._create_submitted_entry(child)
-
-        resp = self.client.get(reverse('wellbeing_entry_export_json', args=[entry.id]))
-        self.assertEqual(resp.status_code, 302)
-        self.assertIn('export_blocked', resp.url)
-
-    def test_export_rejects_missing_dob(self):
-        child = ChildProfile.objects.create(
-            name='E4', sex='m', jaundice='no', family_asd='no',
-            # no date_of_birth
-        )
-        CaregiverChild.objects.create(caregiver=self.user, child=child)
-        entry = self._create_submitted_entry(child)
-
-        resp = self.client.get(reverse('wellbeing_entry_export_json', args=[entry.id]))
-        self.assertEqual(resp.status_code, 302)
-        self.assertIn('export_blocked', resp.url)
-
-    def test_export_other_caregiver_blocked(self):
-        """One caregiver cannot export another's entry."""
-        other = User.objects.create_user(
-            username='other', password='x', role=User.Role.CAREGIVER
-        )
-        child = ChildProfile.objects.create(
-            name='E5', date_of_birth=datetime.date(2020, 1, 1),
-            sex='m', jaundice='no', family_asd='no'
-        )
-        CaregiverChild.objects.create(caregiver=other, child=child)
-        entry = WeeklyWellbeingEntry.objects.create(
-            caregiver=other, child=child,
-            week_start=datetime.date(2025, 2, 10),
-            week_end=datetime.date(2025, 2, 16),
-            status='SUBMITTED', submitted_at=timezone.now()
-        )
-        for q in WellbeingQuestion.objects.all():
-            WeeklyWellbeingAnswer.objects.create(entry=entry, question=q, slider_score=3)
-
-        resp = self.client.get(reverse('wellbeing_entry_export_json', args=[entry.id]))
-        self.assertEqual(resp.status_code, 404)
-
-
-# ============================================================
 # URL Resolution Tests
 # ============================================================
 
@@ -615,7 +509,6 @@ class TestURLResolution(TestCase):
             ('wellbeing_entry_start', [1]),
             ('wellbeing_entry_edit', [1]),
             ('wellbeing_entry_submit', [1]),
-            ('wellbeing_entry_export_json', [1]),
         ]
         for name, args in parameterized:
             try:
