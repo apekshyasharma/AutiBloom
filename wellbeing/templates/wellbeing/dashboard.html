@@ -412,6 +412,103 @@ h1, h2, h3, h4, h5, h6, .display-font {
 .next-lbl { font-family:'Inter',sans-serif; font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#64748b; margin-bottom:.15rem; }
 .next-date { font-family:'Plus Jakarta Sans',sans-serif; font-size:.95rem;font-weight:700;color:var(--night); }
 
+/* =====================================================
+   AESTHETIC ONBOARDING TOUR
+   ===================================================== */
+#tour-spotlight {
+  position: fixed;
+  pointer-events: none;
+  z-index: 99998;
+  border-radius: 20px;
+  box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.75);
+  display: none;
+  border: 2px solid var(--teal);
+}
+
+#tour-tooltip {
+  position: absolute;
+  z-index: 99999;
+  width: 320px;
+  background: rgba(15, 23, 42, 0.95);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 24px;
+  padding: 1.5rem;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+  color: #fff;
+  display: none;
+  font-family: 'Inter', sans-serif;
+  animation: tour-pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes tour-pop {
+  from { opacity: 0; transform: scale(0.9) translateY(10px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.tour-progress {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--teal);
+  margin-bottom: 0.5rem;
+  display: flex;
+  justify-content: space-between;
+}
+
+.tour-title {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 1.15rem;
+  font-weight: 800;
+  margin-bottom: 0.75rem;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+}
+
+.tour-body {
+  font-size: 0.88rem;
+  line-height: 1.5;
+  color: #cbd5e1;
+  margin-bottom: 1.25rem;
+}
+
+.tour-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.tour-btn {
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 0.5rem 1rem;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: var(--spring);
+  border: none;
+}
+
+.tour-btn-skip {
+  background: transparent;
+  color: #94a3b8;
+}
+.tour-btn-skip:hover {
+  color: #fff;
+}
+
+.tour-btn-next {
+  background: linear-gradient(135deg, var(--teal) 0%, var(--teal-d) 100%);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(20,184,166,0.3);
+}
+.tour-btn-next:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(20,184,166,0.4);
+}
+
 </style>
 {% endblock caregiver_extra_css %}
 
@@ -590,6 +687,9 @@ h1, h2, h3, h4, h5, h6, .display-font {
       <a href="{% url 'wellbeing_child_edit' child.id %}" class="btn-bloom btn-bloom-sec" id="editCta">
         <i class="bi bi-person-lines-fill"></i> Edit Profile
       </a>
+      <button onclick="startOnboardingTour()" class="btn-bloom btn-bloom-sec" id="tourReplayCta" style="border: 1px solid rgba(20,184,166,0.3); background: rgba(20,184,166,0.05); color: var(--teal); font-weight:700;">
+        <i class="bi bi-compass-fill"></i> Take a Tour Guide
+      </button>
       <div class="next-box">
         <div class="next-icon"><i class="bi bi-calendar2-week"></i></div>
         <div>
@@ -628,7 +728,6 @@ h1, h2, h3, h4, h5, h6, .display-font {
             <span class="badge" style="background:{% if week.is_current_week %}rgba(59,130,246,0.2){% else %}rgba(245,158,11,0.2){% endif %};color:{% if week.is_current_week %}#93c5fd{% else %}#fcd34d{% endif %};font-size:0.7rem;">
               {% if week.is_current_week %}This week{% else %}Past{% endif %}
             </span>
-            <i class="bi bi-arrow-right-circle-fill" style="color:{% if week.is_current_week %}#60a5fa{% else %}#fcd34d{% endif %}"></i>
           </div>
         </a>
         {% endfor %}
@@ -856,9 +955,244 @@ function applyTimeTheme() {
 }
 
 
+/* ── Aesthetic Caregiver Onboarding Tour ── */
+const CAREGIVER_TOUR_STEPS = [
+  {
+    title: "Welcome to AutiBloom! 🌸",
+    body: "We are thrilled to support you and your child in tracking, monitoring, and nurturing their developmental progress.",
+    target: null
+  },
+  {
+    title: "Supportive Developmental Care 📚",
+    body: "AutiBloom serves as an active, clinical-grade bridge, transforming home observations into objective longitudinal trajectories for pediatricians.",
+    target: null
+  },
+  {
+    title: "Switch or Add Child Profiles 👶",
+    body: "Click this profile card to seamlessly switch between multiple children in your care or instantly add a new child profile.",
+    target: "#profilePill"
+  },
+  {
+    title: "Your Logged Stats at a Glance 📊",
+    body: "Monitor total check-ins submitted, weeks tracked, and the date of your last completed report to maintain active care consistency.",
+    target: ".kpi-row"
+  },
+  {
+    title: "Dynamic Growth Trend Charts 📈",
+    body: "Watch your child's developmental trajectory across the four core wellbeing domains: Communication, Routines, Emotional, and Sensory.",
+    target: ".chart-zone"
+  },
+  {
+    title: "Explainable AI (SHAP) Engine 🧠",
+    body: "When check-ins are finalized, our secure Random Forest model computes severity risk. To guarantee trust, we display transparent SHAP explainability attributions showing exactly what symptoms impacted the score.",
+    target: null
+  },
+  {
+    title: "Log a New Weekly Check-in 📝",
+    body: "Click here to record a new weekly behavioral report. It takes less than 3 minutes, and our vector-RAG intelligence handles the rest!",
+    target: "#startCta"
+  },
+  {
+    title: "Download EHR Clinical Reports 📄",
+    body: "Generate fully compiled, EHR-compatible clinical PDFs to share with your pediatrician, completely secured under strict privacy safeguards.",
+    target: "#reportCta"
+  },
+  {
+    title: "You are All Set! 🎉",
+    body: "Let's unlock your custom caregiver workspace. Welcome to a smarter, more supportive way of managing developmental care!",
+    target: null
+  }
+];
+
+class AutiBloomOnboarding {
+  constructor(steps, role) {
+    this.steps = steps;
+    this.role = role;
+    this.currentStep = 0;
+    this.spotlight = null;
+    this.tooltip = null;
+    this.isActive = false;
+    this._rafId = null;
+  }
+
+  init() {
+    if (!document.getElementById('tour-spotlight')) {
+      this.spotlight = document.createElement('div');
+      this.spotlight.id = 'tour-spotlight';
+      document.body.appendChild(this.spotlight);
+    } else {
+      this.spotlight = document.getElementById('tour-spotlight');
+    }
+
+    if (!document.getElementById('tour-tooltip')) {
+      this.tooltip = document.createElement('div');
+      this.tooltip.id = 'tour-tooltip';
+      document.body.appendChild(this.tooltip);
+    } else {
+      this.tooltip = document.getElementById('tour-tooltip');
+    }
+
+    this.isActive = true;
+    this.showStep();
+    this.startUpdateLoop();
+  }
+
+  startUpdateLoop() {
+    const loop = () => {
+      if (!this.isActive) return;
+      
+      const step = this.steps[this.currentStep];
+      if (step.target) {
+        const targetEl = document.querySelector(step.target);
+        if (targetEl) {
+          this.highlight(targetEl);
+          this.positionTooltip(targetEl);
+        } else {
+          this.removeHighlight();
+          this.centerTooltip();
+        }
+      } else {
+        this.removeHighlight();
+        this.centerTooltip();
+      }
+      
+      this._rafId = requestAnimationFrame(loop);
+    };
+    this._rafId = requestAnimationFrame(loop);
+  }
+
+  showStep() {
+    const step = this.steps[this.currentStep];
+    const isLast = this.currentStep === this.steps.length - 1;
+
+    if (step.target) {
+      const targetEl = document.querySelector(step.target);
+      if (targetEl) {
+        targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+
+    this.tooltip.innerHTML = `
+      <div class="tour-progress">
+        <span>Step ${this.currentStep + 1} of ${this.steps.length}</span>
+        <span style="color: rgba(255,255,255,0.4)">${this.role}</span>
+      </div>
+      <h4 class="tour-title">${step.title}</h4>
+      <p class="tour-body">${step.body}</p>
+      <div class="tour-footer">
+        <button class="tour-btn tour-btn-skip" onclick="window.activeTour.skip()">${isLast ? 'Dismiss' : 'Skip'}</button>
+        <div style="display:flex; gap:0.5rem;">
+          ${this.currentStep > 0 ? `<button class="tour-btn tour-btn-skip" style="color:#fff;" onclick="window.activeTour.prev()">Back</button>` : ''}
+          <button class="tour-btn tour-btn-next" onclick="window.activeTour.next()">${isLast ? 'Get Started 🎉' : 'Next'}</button>
+        </div>
+      </div>
+    `;
+
+    this.tooltip.style.display = 'block';
+  }
+
+  highlight(el) {
+    const rect = el.getBoundingClientRect();
+    this.spotlight.style.display = 'block';
+    this.spotlight.style.top = `${rect.top - 8}px`;
+    this.spotlight.style.left = `${rect.left - 8}px`;
+    this.spotlight.style.width = `${rect.width + 16}px`;
+    this.spotlight.style.height = `${rect.height + 16}px`;
+  }
+
+  removeHighlight() {
+    this.spotlight.style.display = 'none';
+  }
+
+  centerTooltip() {
+    this.tooltip.style.position = 'fixed';
+    this.tooltip.style.top = '50%';
+    this.tooltip.style.left = '50%';
+    this.tooltip.style.transform = 'translate(-50%, -50%)';
+    this.tooltip.style.boxShadow = '0 30px 90px rgba(0,0,0,0.8)';
+  }
+
+  positionTooltip(targetEl) {
+    if (!targetEl) {
+      this.centerTooltip();
+      return;
+    }
+
+    const rect = targetEl.getBoundingClientRect();
+    this.tooltip.style.position = 'absolute';
+    this.tooltip.style.transform = 'none';
+
+    let top = rect.bottom + window.scrollY + 16;
+    let left = rect.left + window.scrollX + (rect.width - 320) / 2;
+
+    if (left < 16) left = 16;
+    if (left + 320 > window.innerWidth - 16) {
+      left = window.innerWidth - 320 - 16;
+    }
+
+    if (rect.bottom + 250 > window.innerHeight) {
+      top = rect.top + window.scrollY - this.tooltip.offsetHeight - 160; 
+      if (top < window.scrollY + 16) {
+        top = rect.bottom + window.scrollY + 16;
+      }
+    }
+
+    this.tooltip.style.top = `${top}px`;
+    this.tooltip.style.left = `${left}px`;
+  }
+
+  next() {
+    if (this.currentStep < this.steps.length - 1) {
+      this.currentStep++;
+      this.showStep();
+    } else {
+      this.finish();
+    }
+  }
+
+  prev() {
+    if (this.currentStep > 0) {
+      this.currentStep--;
+      this.showStep();
+    }
+  }
+
+  skip() {
+    this.finish();
+  }
+
+  finish() {
+    this.isActive = false;
+    if (this._rafId) cancelAnimationFrame(this._rafId);
+    this.tooltip.style.display = 'none';
+    this.spotlight.style.display = 'none';
+    localStorage.setItem(`autibloom_tour_completed_${this.role.toLowerCase()}`, 'true');
+    
+    const zone = document.querySelector('.cards-zone');
+    if (zone) {
+      zone.style.transition = 'box-shadow 1s ease';
+      zone.style.boxShadow = '0 0 50px rgba(20,184,166,0.25)';
+      setTimeout(() => zone.style.boxShadow = 'none', 1500);
+    }
+  }
+}
+
+function startOnboardingTour() {
+  window.activeTour = new AutiBloomOnboarding(CAREGIVER_TOUR_STEPS, 'CAREGIVER');
+  window.activeTour.init();
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   applyTimeTheme();
   initCharts({{ chart_data|safe }});
+
+  const completed = localStorage.getItem('autibloom_tour_completed_caregiver');
+  const isFirstTime = new URLSearchParams(window.location.search).get('event') === 'child_created';
+  if (isFirstTime && !completed) {
+    setTimeout(() => {
+      startOnboardingTour();
+    }, 1200);
+  }
 });
 </script>
 

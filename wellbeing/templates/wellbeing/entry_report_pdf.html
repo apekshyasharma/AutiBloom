@@ -5,8 +5,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AutiBloom Clinical Report — {{ entry.child.name }}</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js"></script>
     <style>
         /* ─── Reset & Base ────────────────────────────────────────── */
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -183,6 +184,17 @@
         }
         .soap-content p { margin-bottom: 12px; }
         .soap-content p:last-child { margin-bottom: 0; }
+        .soap-content h1, .soap-content h2, .soap-content h3, .soap-content h4 {
+            font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+            font-size: 11pt; font-weight: 700; color: #0f172a;
+            margin: 12px 0 6px; letter-spacing: -0.01em;
+        }
+        .soap-content h1:first-child, .soap-content h2:first-child,
+        .soap-content h3:first-child { margin-top: 0; }
+        .soap-content strong { color: #0f766e; font-weight: 700; }
+        .soap-content ul, .soap-content ol { margin: 6px 0 12px; padding-left: 18px; }
+        .soap-content li { margin-bottom: 4px; }
+        .soap-content hr { border: none; border-top: 1px solid #e2e8f0; margin: 12px 0; }
 
         .narrative-section {
             margin-bottom: 28px; page-break-inside: avoid;
@@ -195,6 +207,17 @@
         }
         .narrative-content p { margin-bottom: 12px; }
         .narrative-content p:last-child { margin-bottom: 0; }
+        .narrative-content h1, .narrative-content h2, .narrative-content h3, .narrative-content h4 {
+            font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+            font-size: 11pt; font-weight: 700; color: #0f172a;
+            margin: 12px 0 6px; letter-spacing: -0.01em;
+        }
+        .narrative-content h1:first-child, .narrative-content h2:first-child,
+        .narrative-content h3:first-child { margin-top: 0; }
+        .narrative-content strong { color: #0f172a; font-weight: 700; }
+        .narrative-content ul, .narrative-content ol { margin: 6px 0 12px; padding-left: 18px; }
+        .narrative-content li { margin-bottom: 4px; }
+        .narrative-content hr { border: none; border-top: 1px solid #e2e8f0; margin: 12px 0; }
 
         /* ─── Disclaimer ─────────────────────────────────────────── */
         .disclaimer {
@@ -392,9 +415,7 @@
             <span class="icon icon-emerald">🩺</span>
             Medical Scribe Note (SOAP)
         </div>
-        <div class="soap-content">
-            {{ soap_note|linebreaksbr }}
-        </div>
+        <div class="soap-content" data-markdown>{{ soap_note }}</div>
     </div>
     {% endif %}
 
@@ -405,9 +426,7 @@
             <span class="icon icon-teal">📝</span>
             Parent-Friendly Summary
         </div>
-        <div class="narrative-content">
-            {{ narrative|linebreaksbr }}
-        </div>
+        <div class="narrative-content" data-markdown>{{ narrative }}</div>
     </div>
     {% endif %}
 
@@ -480,5 +499,25 @@
     })();
     </script>
     {% endif %}
+
+    <!-- ═══════════════════ MARKDOWN RENDER (Parent Summary + SOAP) ═══ -->
+    <script>
+    (function () {
+        if (typeof marked === 'undefined') return;
+        marked.setOptions({ breaks: true, gfm: true, headerIds: false, mangle: false });
+        document.querySelectorAll('[data-markdown]').forEach(function (el) {
+            var raw = (el.textContent || '').trim();
+            if (!raw) return;
+            raw = raw.replace(/^\s*[-–—]+>\s*/gm, '')
+                     .replace(/^\s*→\s*/gm, '')
+                     .replace(/^\s*---+\s*$/gm, '')
+                     .replace(/\[Insert [^\]]+\]/g, '')
+                     .replace(/\[Child's Name\]/gi, 'the child')
+                     .replace(/\[age\]-year-old/gi, '')
+                     .replace(/\[gender\]/gi, '');
+            el.innerHTML = marked.parse(raw);
+        });
+    })();
+    </script>
 </body>
 </html>

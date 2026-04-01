@@ -374,18 +374,14 @@ h1,h2,h3,h4 { font-family: 'Plus Jakarta Sans', sans-serif; }
     <!-- Narrative Full Width -->
     <div class="narrative-card">
           <h3><i class="bi bi-journal-text me-2"></i>Parent Summary</h3>
-          <div class="markdown-content">
-              {{ narrative|urlize|linebreaks }}
-          </div>
+          <div class="markdown-content" data-markdown>{{ narrative }}</div>
       </div>
-      
+
       {% if soap_note %}
       <!-- SOAP Note Full Width -->
       <div class="narrative-card soap-card mt-4" style="background:#f8fafc; border-color:#e2e8f0;">
           <h3><i class="bi bi-file-medical me-2" style="color: #0f766e;"></i>Medical Scribe Note (SOAP)</h3>
-          <div class="markdown-content text-muted">
-              {{ soap_note|urlize|linebreaks }}
-          </div>
+          <div class="markdown-content soap-rendered" data-markdown>{{ soap_note }}</div>
       </div>
       {% endif %}
     <div class="action-bar" id="actionBar">
@@ -424,6 +420,51 @@ h1,h2,h3,h4 { font-family: 'Plus Jakarta Sans', sans-serif; }
 {% endblock caregiver_content %}
 
 {% block caregiver_extra_js %}
+<!-- Markdown renderer for AI-generated Parent Summary and SOAP note -->
+<script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js"></script>
+<script>
+(function () {
+  if (typeof marked === 'undefined') return;
+  marked.setOptions({ breaks: true, gfm: true, headerIds: false, mangle: false });
+  document.querySelectorAll('[data-markdown]').forEach(function (el) {
+    var raw = (el.textContent || '').trim();
+    if (!raw) return;
+    // Strip generic AI artifacts: leading "->", "→", standalone separators, trailing "---"
+    raw = raw.replace(/^\s*[-–—]+>\s*/gm, '')      // "-> bullets"
+             .replace(/^\s*→\s*/gm, '')             // unicode arrows
+             .replace(/^\s*---+\s*$/gm, '')         // horizontal rules separators
+             .replace(/\[Insert [^\]]+\]/g, '')     // "[Insert Date]" placeholders
+             .replace(/\[Child's Name\]/gi, 'the child')
+             .replace(/\[age\]-year-old/gi, '')
+             .replace(/\[gender\]/gi, '');
+    el.innerHTML = marked.parse(raw);
+  });
+})();
+</script>
+<style>
+/* Polish markdown output inside Parent Summary and SOAP cards */
+.markdown-content h1, .markdown-content h2, .markdown-content h3,
+.markdown-content h4 {
+  font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+  font-size: 1rem; font-weight: 700; color: var(--night);
+  margin: 1.25rem 0 .5rem; letter-spacing: -0.01em;
+}
+.markdown-content h1:first-child, .markdown-content h2:first-child,
+.markdown-content h3:first-child { margin-top: 0; }
+.markdown-content strong { color: var(--night); font-weight: 700; }
+.markdown-content ul, .markdown-content ol {
+  margin: .5rem 0 1rem; padding-left: 1.25rem;
+}
+.markdown-content li { margin-bottom: .35rem; }
+.markdown-content li::marker { color: var(--teal-d); }
+.markdown-content hr {
+  border: none; border-top: 1px solid #e2e8f0; margin: 1rem 0;
+}
+.markdown-content p { margin-bottom: 1rem; }
+.markdown-content p:last-child { margin-bottom: 0; }
+.soap-rendered { color: #334155 !important; }
+.soap-rendered strong { color: #0f766e; }
+</style>
 {% if explanation.top_shap_features %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
