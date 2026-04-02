@@ -1,0 +1,189 @@
+{% load static %}
+<div class="row justify-content-center">
+    <div class="col-xl-10">
+
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
+            <div>
+                <h2 class="fw-bold mb-1" style="letter-spacing: -0.5px;">Your Profile</h2>
+                <p class="text-muted mb-0" style="font-size: 0.9rem;">Control how you appear on AutiBloom and keep your contact details current.</p>
+            </div>
+            <a href="{% url 'settings' %}" class="btn btn-light rounded-pill fw-semibold border shadow-sm">
+                <i class="bi bi-gear me-1"></i> Preferences &amp; Security
+            </a>
+        </div>
+
+        {% if messages %}
+            {% for message in messages %}{% if 'dialog' not in message.tags %}
+            <div class="alert {% if 'success' in message.tags %}alert-success{% elif 'error' in message.tags %}alert-danger{% else %}alert-info{% endif %} alert-dismissible fade show rounded-4 border-0 shadow-sm" role="alert">
+                <i class="bi {% if 'success' in message.tags %}bi-check-circle-fill{% else %}bi-info-circle-fill{% endif %} me-2"></i>
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endif %}{% endfor %}
+        {% endif %}
+
+        <form method="post" enctype="multipart/form-data" novalidate>
+            {% csrf_token %}
+
+            <div class="row g-4">
+                <!-- Left column: avatar + meta -->
+                <div class="col-lg-4">
+                    <div class="profile-card p-4 text-center h-100 d-flex flex-column">
+                        <div class="avatar-ring mx-auto mb-3">
+                            {% if profile_user.avatar %}
+                                <img src="{{ profile_user.avatar.url }}" alt="Avatar" id="avatarPreview">
+                            {% else %}
+                                <span id="avatarPreview">{{ profile_user.initials }}</span>
+                            {% endif %}
+                        </div>
+
+                        <h5 class="fw-bold mb-0">{{ profile_user.display_name }}</h5>
+                        <p class="text-muted small mb-3">@{{ profile_user.username }}</p>
+
+                        {% if profile_user.is_clinician %}
+                            <div class="mb-3">
+                                {% if profile_user.clinician_verified %}
+                                    <span class="verified-pill"><i class="bi bi-patch-check-fill"></i> Verified Clinician</span>
+                                {% else %}
+                                    <span class="verified-pill" style="background: rgba(245,158,11,0.12); color: #b45309; border-color: rgba(245,158,11,0.3);">
+                                        <i class="bi bi-hourglass-split"></i> Pending Verification
+                                    </span>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+
+                        <label class="btn btn-outline-primary rounded-pill fw-semibold mb-2" for="{{ form.avatar.id_for_label }}">
+                            <i class="bi bi-camera-fill me-1"></i> Change Photo
+                        </label>
+                        <div style="display: none;">{{ form.avatar }}</div>
+                        {% if form.avatar.errors %}<div class="text-danger small">{{ form.avatar.errors.0 }}</div>{% endif %}
+
+                        {% if profile_user.avatar %}
+                            <button type="submit" name="remove_avatar" value="1"
+                                    class="btn btn-sm btn-link text-danger text-decoration-none"
+                                    onclick="return confirm('Remove your profile photo?');">
+                                <i class="bi bi-trash me-1"></i> Remove photo
+                            </button>
+                        {% endif %}
+
+                        <div class="mt-auto pt-4 text-start">
+                            <div class="section-label">Joined</div>
+                            <div class="fw-semibold text-dark">{{ profile_user.date_joined|date:"F j, Y" }}</div>
+
+                            {% if profile_user.last_login %}
+                            <div class="section-label mt-3">Last sign-in</div>
+                            <div class="fw-semibold text-dark">{{ profile_user.last_login|date:"M j, Y · h:i A" }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right column: editable fields -->
+                <div class="col-lg-8">
+                    <div class="profile-card p-4 p-md-5">
+                        <h5 class="fw-bold mb-4"><i class="bi bi-person-fill text-primary me-2"></i>Personal Information</h5>
+
+                        {% if form.non_field_errors %}
+                        <div class="alert alert-danger rounded-4 border-0">
+                            {{ form.non_field_errors }}
+                        </div>
+                        {% endif %}
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label" for="{{ form.first_name.id_for_label }}">First name</label>
+                                {{ form.first_name }}
+                                {% if form.first_name.errors %}<div class="text-danger small mt-1">{{ form.first_name.errors.0 }}</div>{% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label" for="{{ form.last_name.id_for_label }}">Last name</label>
+                                {{ form.last_name }}
+                                {% if form.last_name.errors %}<div class="text-danger small mt-1">{{ form.last_name.errors.0 }}</div>{% endif %}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label" for="{{ form.email.id_for_label }}">Email</label>
+                                {{ form.email }}
+                                {% if form.email.errors %}<div class="text-danger small mt-1">{{ form.email.errors.0 }}</div>{% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label" for="{{ form.phone_number.id_for_label }}">Phone</label>
+                                {{ form.phone_number }}
+                                {% if form.phone_number.errors %}<div class="text-danger small mt-1">{{ form.phone_number.errors.0 }}</div>{% endif %}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label" for="{{ form.date_of_birth.id_for_label }}">Date of birth</label>
+                                {{ form.date_of_birth }}
+                                {% if form.date_of_birth.errors %}<div class="text-danger small mt-1">{{ form.date_of_birth.errors.0 }}</div>{% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label" for="{{ form.address.id_for_label }}">Address</label>
+                                {{ form.address }}
+                                {% if form.address.errors %}<div class="text-danger small mt-1">{{ form.address.errors.0 }}</div>{% endif %}
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label" for="{{ form.bio.id_for_label }}">Bio</label>
+                                {{ form.bio }}
+                                <div class="form-text text-muted">A short intro shown to clinicians (caregivers) or caregivers (clinicians).</div>
+                            </div>
+                        </div>
+
+                        {% if profile_user.is_clinician %}
+                        <hr class="my-4">
+                        <h5 class="fw-bold mb-4"><i class="bi bi-clipboard2-pulse-fill text-info me-2"></i>Professional Details</h5>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label" for="{{ form.specialization.id_for_label }}">Specialization</label>
+                                {{ form.specialization }}
+                                {% if form.specialization.errors %}<div class="text-danger small mt-1">{{ form.specialization.errors.0 }}</div>{% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label" for="{{ form.license_number.id_for_label }}">License number</label>
+                                {{ form.license_number }}
+                                {% if form.license_number.errors %}<div class="text-danger small mt-1">{{ form.license_number.errors.0 }}</div>{% endif %}
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label" for="{{ form.years_of_experience.id_for_label }}">Years of experience</label>
+                                {{ form.years_of_experience }}
+                                {% if form.years_of_experience.errors %}<div class="text-danger small mt-1">{{ form.years_of_experience.errors.0 }}</div>{% endif %}
+                            </div>
+                            <div class="col-md-8">
+                                <label class="form-label" for="{{ form.qualifications.id_for_label }}">Qualifications</label>
+                                {{ form.qualifications }}
+                                <div class="form-text text-muted">Degrees, certifications, memberships. Shown on your public clinician card.</div>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+                            <a href="{% if profile_user.is_caregiver %}{% url 'wellbeing_dashboard' %}{% else %}{% url 'dashboard' %}{% endif %}" class="btn btn-light rounded-pill px-4 fw-semibold border">Cancel</a>
+                            <button type="submit" class="btn rounded-pill px-5 fw-bold shadow-sm" style="background: linear-gradient(135deg, #34d399, #059669); color: #fff; border: none;">
+                                <i class="bi bi-check2 me-1"></i> Save Changes
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+(function () {
+    // Live-preview the selected avatar before submit.
+    var input = document.getElementById('{{ form.avatar.id_for_label }}');
+    var preview = document.getElementById('avatarPreview');
+    if (!input || !preview) return;
+    input.addEventListener('change', function () {
+        var file = input.files && input.files[0];
+        if (!file) return;
+        var reader = new FileReader();
+        reader.onload = function (e) {
+            preview.outerHTML = '<img src="' + e.target.result + '" alt="Avatar preview" id="avatarPreview">';
+        };
+        reader.readAsDataURL(file);
+    });
+})();
+</script>

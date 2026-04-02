@@ -1,0 +1,109 @@
+{% extends 'accounts/base.html' %}
+
+{% block title %}Clinician Workspace - AutiBloom{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+    .stat-card { border-radius: 18px; border: 1px solid rgba(0,0,0,0.05); transition: all 0.2s; }
+    .stat-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
+    .stat-icon { width: 52px; height: 52px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
+    .quick-link { border-radius: 16px; border: 1px solid rgba(0,0,0,0.06); padding: 1.5rem; transition: all 0.2s; cursor: pointer; text-decoration: none; display: block; }
+    .quick-link:hover { background: #f8fafc; box-shadow: 0 4px 16px rgba(0,0,0,0.06); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex align-items-center gap-3 mb-1">
+            <h1 class="fw-bold mb-0" style="letter-spacing: -0.5px;">Clinician Workspace</h1>
+            {% if user.clinician_verified %}
+            <span class="badge rounded-pill px-3 py-2 fw-semibold" style="background: linear-gradient(135deg, #34d399, #059669); color: #fff; font-size: 0.8rem;">
+                <i class="bi bi-patch-check-fill me-1"></i>Verified
+            </span>
+            {% endif %}
+        </div>
+        <p class="text-muted mb-0">Secure access for clinical professionals.</p>
+    </div>
+</div>
+
+<!-- Privacy Banner -->
+<div class="d-flex align-items-center gap-3 p-4 rounded-4 mb-4 shadow-sm" style="background: linear-gradient(135deg, #e0f2fe, #dbeafe); border: 1px solid #bfdbfe;">
+    <div class="d-flex align-items-center justify-content-center rounded-3 flex-shrink-0" style="width: 44px; height: 44px; background: #93c5fd;">
+        <i class="bi bi-shield-lock-fill text-white fs-5"></i>
+    </div>
+    <div>
+        <div class="fw-bold text-dark" style="font-size: 0.9rem;">Privacy Reminder</div>
+        <div class="text-muted" style="font-size: 0.85rem;">Ensure you are in a private environment when reviewing patient data.</div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row g-4 mb-4">
+    <div class="col-md-6">
+        <a href="{% url 'clinician_appointment_list' %}" class="quick-link bg-white shadow-sm h-100">
+            <div class="d-flex align-items-center gap-3 mb-3">
+                <div class="stat-icon bg-success bg-opacity-10 text-success"><i class="bi bi-calendar2-check"></i></div>
+                <div>
+                    <h4 class="fw-bold mb-0 text-dark">Appointments</h4>
+                    <p class="text-muted mb-0" style="font-size: 0.85rem;">View and manage assigned cases</p>
+                </div>
+            </div>
+            <div class="d-flex align-items-center justify-content-between">
+                <span class="text-muted" style="font-size: 0.85rem;">Review pending consultations →</span>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-6">
+        <div class="quick-link bg-white shadow-sm h-100" style="cursor: default;">
+            <div class="d-flex align-items-center gap-3 mb-3">
+                <div class="stat-icon bg-primary bg-opacity-10 text-primary"><i class="bi bi-file-earmark-medical"></i></div>
+                <div>
+                    <h4 class="fw-bold mb-0 text-dark">Patient Reports</h4>
+                    <p class="text-muted mb-0" style="font-size: 0.85rem;">Access submitted wellbeing data</p>
+                </div>
+            </div>
+            <div class="d-flex align-items-center justify-content-between">
+                <span class="text-muted" style="font-size: 0.85rem;">Reports are attached to appointments</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Guidance Section -->
+<div class="card border-0 shadow-sm rounded-4">
+    <div class="card-body p-4">
+        <h5 class="fw-bold mb-3"><i class="bi bi-lightbulb text-warning me-2"></i>How It Works</h5>
+        <div class="row g-3">
+            <div class="col-md-4">
+                <div class="d-flex align-items-start gap-3">
+                    <span class="badge rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 32px; height: 32px; background: #d1fae5; color: #059669; font-weight: 800;">1</span>
+                    <div>
+                        <div class="fw-semibold text-dark" style="font-size: 0.9rem;">Receive Request</div>
+                        <div class="text-muted" style="font-size: 0.82rem;">Caregivers submit appointments with attached wellbeing reports.</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="d-flex align-items-start gap-3">
+                    <span class="badge rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 32px; height: 32px; background: #dbeafe; color: #3b82f6; font-weight: 800;">2</span>
+                    <div>
+                        <div class="fw-semibold text-dark" style="font-size: 0.9rem;">Review &amp; Analyze</div>
+                        <div class="text-muted" style="font-size: 0.82rem;">Review scores, write internal notes, and communicate with the caregiver.</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="d-flex align-items-start gap-3">
+                    <span class="badge rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 32px; height: 32px; background: #fef3c7; color: #d97706; font-weight: 800;">3</span>
+                    <div>
+                        <div class="fw-semibold text-dark" style="font-size: 0.9rem;">Issue Support Plan</div>
+                        <div class="text-muted" style="font-size: 0.82rem;">Create actionable recommendations shared directly with the caregiver.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

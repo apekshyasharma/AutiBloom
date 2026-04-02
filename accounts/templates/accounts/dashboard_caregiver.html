@@ -1,0 +1,76 @@
+{% extends 'layouts/caregiver_base.html' %}
+
+{% block caregiver_title %}My Dashboard - AutiBloom{% endblock %}
+
+{% block caregiver_content %}
+<div class="container py-4">
+    <!-- Welcome Banner using the generated "warm" concept -->
+    <div class="p-5 mb-4 bg-teal-soft rounded-3 shadow-sm"
+        style="background-color: #f0fdfa; border-left: 5px solid var(--ab-primary);">
+        <div class="container-fluid py-2">
+            <h1 class="display-5 fw-bold text-teal-600">You're doing great, {{ user.username }}!</h1>
+            <p class="col-md-8 fs-4 text-muted">Welcome to your supportive space. Small steps lead to big journeys.</p>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-5">
+        <!-- Daily Wins -->
+        <div class="col-md-6">
+            <div class="card h-100 shadow-sm border-0">
+                <div class="card-header bg-white border-0 pt-4 px-4 pb-0">
+                    <h4 class="fw-bold mb-0">Daily Wins <i class="bi bi-trophy text-warning ms-2"></i></h4>
+                </div>
+                <div class="card-body p-4">
+                    <div class="list-group list-group-flush">
+                        <div class="list-group-item border-0 d-flex align-items-center ps-0">
+                            <i class="bi bi-check-circle-fill text-success fs-4 me-3"></i>
+                            <span class="fs-5">Morning Routine</span>
+                        </div>
+                        <div class="list-group-item border-0 d-flex align-items-center ps-0">
+                            <i class="bi bi-check-circle-fill text-success fs-4 me-3"></i>
+                            <span class="fs-5">Reading Time</span>
+                        </div>
+                        <div class="list-group-item border-0 d-flex align-items-center ps-0">
+                            <i class="bi bi-circle text-muted fs-4 me-3"></i>
+                            <span class="text-muted">Positive Interaction (Track this win!)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Progress Placeholder -->
+        <div class="col-md-6">
+            <div class="card h-100 shadow-sm border-0">
+                <div class="card-header bg-white border-0 pt-4 px-4 pb-0">
+                    <h4 class="fw-bold mb-0">Weekly Check-ins <i class="bi bi-bar-chart-line text-primary ms-2"></i>
+                    </h4>
+                </div>
+                <div class="card-body d-flex flex-column p-4">
+                    <p class="card-text text-muted flex-grow-1">Track your child's weekly wellbeing across
+                        communication, routines, emotional responses, and sensory behaviors.</p>
+                    <a href="{% url 'wellbeing_child_list' %}" class="btn btn-primary mt-2">
+                        <i class="bi bi-people me-2"></i>My Children
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quote -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card bg-warning bg-opacity-10 border-0 p-4 text-center">
+                <figure class="mb-0">
+                    <blockquote class="blockquote">
+                        <p class="mb-0">"Every flower blooms in its own time."</p>
+                    </blockquote>
+                    <figcaption class="blockquote-footer mt-2">
+                        AutiBloom Community
+                    </figcaption>
+                </figure>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock caregiver_content %}

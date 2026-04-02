@@ -1,0 +1,81 @@
+{% extends 'accounts/base.html' %}
+{% load static %}
+
+{% block title %}Log In - AutiBloom{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center align-items-center" style="min-height: 60vh;">
+    <div class="col-md-5 col-lg-4">
+        <div class="card shadow-lg border-0">
+            <div class="card-body p-5">
+                <div class="text-center mb-4">
+                    <i class="bi bi-person-circle fs-1 text-teal-600" style="color: var(--ab-primary);"></i>
+                    <h2 class="fw-bold mt-2">Welcome Back</h2>
+                    <p class="text-muted">Please log in to your secure workspace.</p>
+                </div>
+
+                <form method="post" class="needs-spinner" novalidate>
+                    {% csrf_token %}
+
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        {% for error in form.non_field_errors %}
+                        {{ error }}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <div class="mb-3">
+                        <label for="{{ form.username.id_for_label }}" class="form-label">Username</label>
+                        <input type="text" name="{{ form.username.name }}"
+                            class="form-control {% if form.username.errors %}is-invalid{% endif %}"
+                            id="{{ form.username.id_for_label }}" required autofocus>
+                        {% for error in form.username.errors %}
+                        <div class="invalid-feedback">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="{{ form.password.id_for_label }}" class="form-label">Password</label>
+                        <div class="input-group">
+                            <input type="password" name="{{ form.password.name }}"
+                                class="form-control {% if form.password.errors %}is-invalid{% endif %}"
+                                id="{{ form.password.id_for_label }}" required>
+                            <button class="btn btn-outline-secondary toggle-password" type="button"
+                                data-target="{{ form.password.id_for_label }}">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                            {% for error in form.password.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="text-end mt-1">
+                            <small><a href="/accounts/password_reset/" class="text-decoration-none text-muted">Forgot
+                                    password?</a></small>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <span class="submit-text">Log In</span>
+                            <span class="spinner-btn"><span class="spinner-border spinner-border-sm" role="status"
+                                    aria-hidden="true"></span> Logging in...</span>
+                        </button>
+                    </div>
+                </form>
+
+                <div class="text-center mt-4">
+                    <p class="small text-muted mb-0">Don't have an account?</p>
+                    <a href="{% url 'caregiver_signup' %}" class="fw-bold text-decoration-none"
+                        style="color: var(--ab-primary);">Create Caregiver Account</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center mt-3">
+            <small class="text-muted"><i class="bi bi-info-circle me-1"></i> If you are a Clinician, please contact your
+                Administrator for access.</small>
+        </div>
+    </div>
+</div>
+{% endblock %}

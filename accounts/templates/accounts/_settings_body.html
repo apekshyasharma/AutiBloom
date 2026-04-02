@@ -1,0 +1,175 @@
+{% load static %}
+<div class="row justify-content-center">
+    <div class="col-xl-9 col-lg-10">
+
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
+            <div>
+                <h2 class="fw-bold mb-1" style="letter-spacing: -0.5px;">Settings</h2>
+                <p class="text-muted mb-0" style="font-size: 0.9rem;">Preferences, notifications, and account security.</p>
+            </div>
+            <a href="{% url 'profile' %}" class="btn btn-light rounded-pill fw-semibold border shadow-sm">
+                <i class="bi bi-person me-1"></i> Back to Profile
+            </a>
+        </div>
+
+        {% if messages %}
+            {% for message in messages %}{% if 'dialog' not in message.tags %}
+            <div class="alert {% if 'success' in message.tags %}alert-success{% elif 'error' in message.tags %}alert-danger{% else %}alert-info{% endif %} alert-dismissible fade show rounded-4 border-0 shadow-sm" role="alert">
+                <i class="bi {% if 'success' in message.tags %}bi-check-circle-fill{% else %}bi-info-circle-fill{% endif %} me-2"></i>
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endif %}{% endfor %}
+        {% endif %}
+
+        <!-- Notifications & Preferences -->
+        <div class="settings-card p-4 p-md-5 mb-4">
+            <div class="d-flex align-items-center gap-3 mb-4">
+                <div class="d-inline-flex align-items-center justify-content-center rounded-3" style="width: 44px; height: 44px; background: #dbeafe;">
+                    <i class="bi bi-bell-fill text-primary fs-5"></i>
+                </div>
+                <div>
+                    <h5 class="fw-bold mb-0">Notifications &amp; Preferences</h5>
+                    <p class="text-muted mb-0" style="font-size: 0.85rem;">Choose what reaches your inbox and how your time is shown.</p>
+                </div>
+            </div>
+
+            <form method="post" novalidate>
+                {% csrf_token %}
+                <input type="hidden" name="action" value="preferences">
+
+                <div class="pref-row">
+                    <div class="text">
+                        <h6>Transactional emails</h6>
+                        <p>Appointment confirmations, support plans, password updates. Turning this off can cause you to miss important clinical notifications.</p>
+                    </div>
+                    <div class="form-check form-switch mt-1">
+                        <input class="form-check-input" type="checkbox" role="switch" id="notify_email" name="notify_email" {% if form.notify_email.value %}checked{% endif %}>
+                    </div>
+                </div>
+
+                <div class="pref-row">
+                    <div class="text">
+                        <h6>Appointment reminders</h6>
+                        <p>In-app reminders for upcoming appointments and pending caregiver requests.</p>
+                    </div>
+                    <div class="form-check form-switch mt-1">
+                        <input class="form-check-input" type="checkbox" role="switch" id="notify_appointments" name="notify_appointments" {% if form.notify_appointments.value %}checked{% endif %}>
+                    </div>
+                </div>
+
+                <div class="pref-row">
+                    <div class="text">
+                        <h6>Weekly community digest</h6>
+                        <p>A once-a-week summary of new posts in your spaces and unread messages in the community inbox.</p>
+                    </div>
+                    <div class="form-check form-switch mt-1">
+                        <input class="form-check-input" type="checkbox" role="switch" id="notify_community_digest" name="notify_community_digest" {% if form.notify_community_digest.value %}checked{% endif %}>
+                    </div>
+                </div>
+
+                <div class="pref-row">
+                    <div class="text" style="flex: 1 1 0;">
+                        <h6>Time zone</h6>
+                        <p>Appointment slots and reminders are shown in this zone.</p>
+                    </div>
+                    <div style="min-width: 280px;">
+                        {{ form.preferred_timezone }}
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end mt-4 pt-3 border-top">
+                    <button type="submit" class="btn rounded-pill px-5 fw-bold shadow-sm" style="background: linear-gradient(135deg, #34d399, #059669); color: #fff; border: none;">
+                        <i class="bi bi-check2 me-1"></i> Save Preferences
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Security · Change Password -->
+        <div class="settings-card p-4 p-md-5 mb-4">
+            <div class="d-flex align-items-center gap-3 mb-4">
+                <div class="d-inline-flex align-items-center justify-content-center rounded-3" style="width: 44px; height: 44px; background: #fee2e2;">
+                    <i class="bi bi-shield-lock-fill text-danger fs-5"></i>
+                </div>
+                <div>
+                    <h5 class="fw-bold mb-0">Account Security</h5>
+                    <p class="text-muted mb-0" style="font-size: 0.85rem;">Change your password. You'll stay signed in on this device.</p>
+                </div>
+            </div>
+
+            <form method="post" novalidate>
+                {% csrf_token %}
+                <input type="hidden" name="action" value="password">
+
+                {% if password_form.non_field_errors %}
+                <div class="alert alert-danger rounded-4 border-0 shadow-sm">
+                    {{ password_form.non_field_errors }}
+                </div>
+                {% endif %}
+
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label" for="{{ password_form.old_password.id_for_label }}">Current password</label>
+                        <input type="password" name="old_password" class="form-control" id="{{ password_form.old_password.id_for_label }}" autocomplete="current-password">
+                        {% if password_form.old_password.errors %}<div class="text-danger small mt-1">{{ password_form.old_password.errors.0 }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label" for="{{ password_form.new_password1.id_for_label }}">New password</label>
+                        <input type="password" name="new_password1" class="form-control" id="{{ password_form.new_password1.id_for_label }}" autocomplete="new-password">
+                        {% if password_form.new_password1.errors %}
+                            {% for err in password_form.new_password1.errors %}
+                            <div class="text-danger small mt-1">{{ err }}</div>
+                            {% endfor %}
+                        {% endif %}
+                        <div class="form-text text-muted">At least 8 characters; avoid common or numeric-only passwords.</div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label" for="{{ password_form.new_password2.id_for_label }}">Confirm new password</label>
+                        <input type="password" name="new_password2" class="form-control" id="{{ password_form.new_password2.id_for_label }}" autocomplete="new-password">
+                        {% if password_form.new_password2.errors %}<div class="text-danger small mt-1">{{ password_form.new_password2.errors.0 }}</div>{% endif %}
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end mt-4 pt-3 border-top">
+                    <button type="submit" class="btn btn-outline-danger rounded-pill px-5 fw-bold shadow-sm">
+                        <i class="bi bi-shield-lock me-1"></i> Update Password
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Danger zone (read-only account info) -->
+        <div class="settings-card p-4 p-md-5">
+            <div class="d-flex align-items-center gap-3 mb-3">
+                <div class="d-inline-flex align-items-center justify-content-center rounded-3" style="width: 44px; height: 44px; background: #e2e8f0;">
+                    <i class="bi bi-info-circle-fill text-secondary fs-5"></i>
+                </div>
+                <div>
+                    <h5 class="fw-bold mb-0">Account</h5>
+                    <p class="text-muted mb-0" style="font-size: 0.85rem;">Read-only account information.</p>
+                </div>
+            </div>
+
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <div class="section-label">Username</div>
+                    <div class="fw-semibold text-dark">@{{ user.username }}</div>
+                </div>
+                <div class="col-md-4">
+                    <div class="section-label">Role</div>
+                    <div class="fw-semibold text-dark">{{ user.get_role_display }}</div>
+                </div>
+                <div class="col-md-4">
+                    <div class="section-label">Status</div>
+                    {% if user.is_active %}
+                        <span class="badge bg-success bg-opacity-10 text-success fw-semibold px-3 py-1">Active</span>
+                    {% else %}
+                        <span class="badge bg-secondary bg-opacity-10 text-secondary fw-semibold px-3 py-1">Inactive</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>

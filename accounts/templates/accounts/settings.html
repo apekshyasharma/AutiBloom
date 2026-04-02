@@ -1,0 +1,12 @@
+{% extends base_template %}
+{% load static %}
+
+{% block title %}Settings · AutiBloom{% endblock %}
+{% block caregiver_title %}Settings · AutiBloom{% endblock %}
+{% block caregiver_topbar_title %}Settings{% endblock %}
+
+{% block extra_css %}{{ block.super }}{% include 'accounts/_profile_settings_css.html' %}{% endblock %}
+{% block caregiver_extra_css %}{% include 'accounts/_profile_settings_css.html' %}{% endblock %}
+
+{% block content %}{% include 'accounts/_settings_body.html' %}{% endblock %}
+{% block caregiver_content %}{% include 'accounts/_settings_body.html' %}{% endblock %}

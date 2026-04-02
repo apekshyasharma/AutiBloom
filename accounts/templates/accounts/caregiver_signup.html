@@ -1,0 +1,89 @@
+{% extends 'accounts/base.html' %}
+
+{% block title %}Sign Up - AutiBloom{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center align-items-center" style="min-height: 70vh;">
+    <div class="col-md-6 col-lg-5">
+        <div class="card shadow-lg border-0">
+            <div class="card-body p-5">
+                <div class="text-center mb-4">
+                    <i class="bi bi-heart-pulse fs-1 text-danger"></i>
+                    <h2 class="fw-bold mt-2">Join Our Community</h2>
+                    <p class="text-muted">Create a Caregiver account to start tracking progress and blooming together.
+                    </p>
+                </div>
+
+                <form method="post" class="needs-spinner" novalidate>
+                    {% csrf_token %}
+
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        {% for error in form.non_field_errors %}
+                        {{ error }}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <!-- Manually rendering common UserCreationForm fields to ensure styling -->
+                    {% for field in form %}
+                    <div class="mb-3">
+                        <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+
+                        {% if 'password' in field.name %}
+                        <div class="input-group">
+                            <input type="password" name="{{ field.name }}"
+                                class="form-control {% if field.errors %}is-invalid{% endif %}"
+                                id="{{ field.id_for_label }}">
+                            <button class="btn btn-outline-secondary toggle-password" type="button"
+                                data-target="{{ field.id_for_label }}">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                            {% for error in field.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <input type="{{ field.field.widget.input_type|default:'text' }}" name="{{ field.name }}"
+                            class="form-control {% if field.errors %}is-invalid{% endif %}"
+                            id="{{ field.id_for_label }}" {% if field.value %}value="{{ field.value }}" {% endif %}>
+                        {% for error in field.errors %}
+                        <div class="invalid-feedback">{{ error }}</div>
+                        {% endfor %}
+                        {% endif %}
+
+                        {% if field.help_text %}
+                        <div class="form-text small">{{ field.help_text|safe }}</div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+
+                    <div class="alert alert-info py-2 d-flex align-items-center">
+                        <i class="bi bi-shield-check me-2"></i>
+                        <small>Your data is private and secure.</small>
+                    </div>
+
+                    <div class="d-grid gap-2 mt-4">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <span class="submit-text">Create Account</span>
+                            <span class="spinner-btn"><span class="spinner-border spinner-border-sm" role="status"
+                                    aria-hidden="true"></span> Creating...</span>
+                        </button>
+                    </div>
+                </form>
+
+                <div class="text-center mt-4">
+                    <p class="small text-muted mb-0">Already have an account?</p>
+                    <a href="{% url 'login' %}" class="fw-bold text-decoration-none"
+                        style="color: var(--ab-primary);">Log In</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center mt-3 text-muted small">
+            <p>Note: Clinician accounts cannot be self-registered. <br>They must be verified and created by an
+                Administrator.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

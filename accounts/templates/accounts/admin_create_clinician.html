@@ -1,0 +1,62 @@
+{% extends 'accounts/base.html' %}
+
+{% block title %}Create Clinician - AutiBloom{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="mb-3">
+                <a href="{% url 'clinician_list' %}" class="text-decoration-none text-muted">
+                    <i class="bi bi-arrow-left me-1"></i> Back to List
+                </a>
+            </div>
+
+            <div class="card shadow border-0">
+                <div class="card-body p-4 p-md-5">
+                    <h2 class="fw-bold mb-4">Create Clinician Account</h2>
+
+                    <form method="post" class="needs-spinner" novalidate>
+                        {% csrf_token %}
+
+                        <!-- Manually render fields assuming simple username/email/password fields passed from context/form -->
+                        <!-- If "form" object is passed, use similar logic to Signup -->
+
+                        <div class="mb-3">
+                            <label for="username" class="form-label">Username</label>
+                            <input type="text" class="form-control" id="username" name="username" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email Address</label>
+                            <input type="email" class="form-control" id="email" name="email" required>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="password" class="form-label">Initial Password</label>
+                            <div class="input-group">
+                                <input type="password" class="form-control" id="password" name="password" required>
+                                <button class="btn btn-outline-secondary toggle-password" type="button"
+                                    data-target="password">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                            <div class="form-text text-muted">
+                                Share this password securely. The clinician should change it upon first login.
+                            </div>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <span class="submit-text">Create Clinician</span>
+                                <span class="spinner-btn"><span class="spinner-border spinner-border-sm" role="status"
+                                        aria-hidden="true"></span> Creating...</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

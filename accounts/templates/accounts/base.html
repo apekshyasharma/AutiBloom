@@ -1,0 +1,245 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}AutiBloom{% endblock %}</title>
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+
+    <!-- Custom CSS -->
+    <link href="{% static 'accounts/css/auth_ui.css' %}" rel="stylesheet">
+
+    {% block extra_css %}{% endblock %}
+</head>
+
+<body class="d-flex flex-column min-vh-100">
+    {% block body_wrapper %}
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light">
+        <div class="container">
+            <a class="navbar-brand text-teal-600 d-flex align-items-center"
+                href="{% if user.is_authenticated %}{% url 'dashboard' %}{% else %}{% url 'login' %}{% endif %}">
+                <i class="bi bi-flower1 me-2 text-success"></i>
+                <span class="fw-bold">AutiBloom</span>
+            </a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarContent">
+                <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-center">
+                    {% if user.is_authenticated %}
+                    <li class="nav-item">
+                        <span
+                            class="badge badge-role {% if user.is_admin %}bg-danger{% elif user.is_clinician %}bg-primary{% else %}bg-success{% endif %} me-3">
+                            {{ user.get_role_display|upper }}
+                        </span>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'dashboard' %}">Dashboard</a>
+                    </li>
+
+                    {% if user.is_admin %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'clinician_list' %}">Manage Clinicians</a>
+                    </li>
+                    {% endif %}
+
+                    {% if user.is_clinician and user.clinician_verified %}
+                    <li class="nav-item">
+                        <a class="nav-link {% if '/appointments/' in request.path %}active{% endif %}" href="{% url 'clinician_appointment_list' %}">Appointments</a>
+                    </li>
+                    {% endif %}
+
+                    <li class="nav-item dropdown ms-2">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-person-circle fs-5"></i>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li class="px-3 py-2">
+                                <div class="fw-bold text-dark">{{ user.display_name }}</div>
+                                <div class="text-muted small">@{{ user.username }}</div>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{% url 'profile' %}"><i class="bi bi-person me-2"></i>Profile</a></li>
+                            <li><a class="dropdown-item" href="{% url 'settings' %}"><i class="bi bi-gear me-2"></i>Settings</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <form method="post" action="{% url 'logout' %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="dropdown-item text-danger"><i class="bi bi-box-arrow-right me-2"></i>Log Out</button>
+                                </form>
+                            </li>
+                        </ul>
+                    </li>
+                    {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'login' %}">Log In</a>
+                    </li>
+                    <li class="nav-item ms-lg-2">
+                        <a class="btn btn-primary" href="{% url 'caregiver_signup' %}">Caregiver Sign Up</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="container my-4 flex-grow-1">
+
+        <!-- Django Messages handled by global script below -->
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-light py-4 mt-auto border-top">
+        <div class="container text-center text-muted small">
+            <p class="mb-1">&copy; 2026 AutiBloom Platform. All rights reserved.</p>
+            <p class="mb-0">
+                <i class="bi bi-shield-lock me-1"></i>
+                <span class="text-secondary">For your privacy, please remember to log out when using shared
+                    devices.</span>
+            </p>
+        </div>
+    </footer>
+    {% endblock %}
+
+    <!-- Bootstrap Bundle JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{% static 'accounts/js/auth_ui.js' %}"></script>
+
+    <!-- Universal Event Modal -->
+    <div id="universalEventModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:2050; backdrop-filter:blur(5px); align-items:center; justify-content:center;">
+      <div id="uem-card" style="background:#fff; width:100%; max-width:320px; border-radius:36px; box-shadow:0 25px 50px rgba(0,0,0,0.15); position:relative; overflow:hidden; text-align:center; padding-bottom:32px; animation: uemPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); margin: 0 20px;">
+        <!-- Wavy Top -->
+        <svg viewBox="0 0 400 150" preserveAspectRatio="none" style="position:absolute; top:0; left:0; width:100%; height:130px; z-index:1;">
+          <path id="uem-wave" d="M0,0 L400,0 L400,80 C250,140 150,20 0,80 Z"/>
+        </svg>
+        <!-- Icon -->
+        <div id="uem-icon-bg" style="position:relative; z-index:2; width:72px; height:72px; border-radius:50%; margin:80px auto 20px; display:flex; align-items:center; justify-content:center; border:4px solid #fff;">
+          <i id="uem-icon" class="bi" style="color:#fff; font-size:2.5rem; -webkit-text-stroke: 1px;"></i>
+        </div>
+        <!-- Text -->
+        <h3 id="uem-title" style="font-family:'Plus Jakarta Sans', sans-serif; font-weight:800; margin-bottom:12px; font-size:1.35rem;"></h3>
+        <p id="uem-body" style="color:#64748b; font-size:0.92rem; margin:0 24px 28px; line-height:1.5;"></p>
+        <!-- Button -->
+        <button id="uem-btn" onclick="document.getElementById('universalEventModal').style.display='none'" style="border:none; border-radius:100px; padding:12px 48px; font-weight:700; font-size:0.95rem; cursor:pointer; font-family:'Inter', sans-serif; transition: transform 0.2s;"></button>
+      </div>
+    </div>
+    <style>
+      @keyframes uemPop { 
+        0% { opacity:0; transform:scale(0.85) translateY(20px); } 
+        100% { opacity:1; transform:scale(1) translateY(0); } 
+      }
+      #uem-btn:hover { transform: translateY(-2px); filter: brightness(1.05); }
+    </style>
+    <script>
+      (function(){
+        // Expose a public trigger for manual calls
+        window.triggerUniversalModal = function(title, body, theme, btnText, redirectUrl) {
+            document.getElementById('uem-title').innerText = title;
+            document.getElementById('uem-body').innerText = body;
+            document.getElementById('uem-btn').innerText = btnText || "Dismiss";
+
+            if (theme === 'success') {
+                document.getElementById('uem-wave').setAttribute('fill', '#d1fae5'); // Green 100
+                document.getElementById('uem-icon-bg').style.background = 'linear-gradient(135deg, #6ee7b7, #34d399)';
+                document.getElementById('uem-icon-bg').style.boxShadow = '0 10px 25px rgba(52,211,153,0.4)';
+                document.getElementById('uem-icon').className = 'bi bi-check-lg';
+                document.getElementById('uem-title').style.color = '#064e3b';
+                document.getElementById('universalEventModal').style.background = 'rgba(236,253,245,0.7)';
+                document.getElementById('uem-btn').style.background = 'linear-gradient(135deg, #a7f3d0, #6ee7b7)';
+                document.getElementById('uem-btn').style.color = '#064e3b';
+                document.getElementById('uem-btn').style.boxShadow = '0 8px 16px rgba(52,211,153,0.25)';
+            } else {
+                document.getElementById('uem-wave').setAttribute('fill', '#fce7f3'); // Pink 100
+                document.getElementById('uem-icon-bg').style.background = 'linear-gradient(135deg, #f9a8d4, #f472b6)';
+                document.getElementById('uem-icon-bg').style.boxShadow = '0 10px 25px rgba(244,114,182,0.4)';
+                document.getElementById('uem-icon').className = 'bi bi-x-lg';
+                document.getElementById('uem-title').style.color = '#831843';
+                document.getElementById('universalEventModal').style.background = 'rgba(254,226,226,0.7)';
+                document.getElementById('uem-btn').style.background = 'linear-gradient(135deg, #fbcfe8, #f9a8d4)';
+                document.getElementById('uem-btn').style.color = '#831843';
+                document.getElementById('uem-btn').style.boxShadow = '0 8px 16px rgba(244,114,182,0.25)';
+            }
+
+            document.getElementById('uem-btn').onclick = function() {
+                document.getElementById('universalEventModal').style.display = 'none';
+                if (redirectUrl) window.location.href = redirectUrl;
+            };
+
+            document.getElementById('universalEventModal').style.display = 'flex';
+        };
+
+        // 1. Check for legacy URL events
+        const params = new URLSearchParams(window.location.search);
+        const eventCode = params.get('event');
+        if (eventCode) {
+            const Events = {
+              'login_success': { theme: 'success', title: "Welcome Back!", body: "You have successfully logged in.", btn: "Let's Go" },
+              'logout_success': { theme: 'success', title: "Goodbye!", body: "You have been successfully logged out.", btn: "Return to Site" },
+              'signup_success': { theme: 'success', title: "You're Signed Up!", body: "You’ve successfully signed up as a caregiver.", btn: "Get Started" },
+              'child_created': { theme: 'success', title: "Profile Added!", body: "You’ve successfully added a new child profile.", btn: "View Dash" },
+              'child_updated': { theme: 'success', title: "Profile Updated!", body: "You’ve successfully updated the child profile.", btn: "View Details" },
+              'entry_saved': { theme: 'success', title: "Progress Saved!", body: "Your check-in progress has been saved securely.", btn: "Continue" },
+              'entry_submitted': { theme: 'success', title: "Report Submitted!", body: "You successfully submitted this week’s wellbeing report.", btn: "View Dash" },
+              'submit_blocked': { theme: 'error', title: "Incomplete Check-in", body: "You still have unanswered questions. Please complete all 10 questions to submit.", btn: "Complete Forms" },
+              'export_blocked': { theme: 'error', title: "Export Unavailable", body: "Missing demographic data required for ML contract: " + (params.get('missing') || '').split(',').join(', ') + ". Please edit the child profile.", btn: "Understood" }
+            };
+            if (Events[eventCode]) {
+                window.triggerUniversalModal(Events[eventCode].title, Events[eventCode].body, Events[eventCode].theme, Events[eventCode].btn);
+            }
+            const url = new URL(window.location);
+            url.searchParams.delete('event');
+            url.searchParams.delete('missing');
+            window.history.replaceState({}, '', url);
+        }
+
+        // 2. Check for native Django Messages (take priority)
+        //    NOTE: use `in` not `==` — Django joins level_tag and extra_tags
+        //    into message.tags as a space-separated string (e.g. "success dialog dialog-confirmed").
+        //    An `==` comparison silently breaks theming as soon as any extra_tags are attached.
+        {% if messages %}
+            {% for message in messages %}
+                {% if forloop.first %} // Only show the highest priority block
+                    let title = "{% if 'success' in message.tags %}Action Completed{% elif 'danger' in message.tags or 'error' in message.tags %}We couldn’t complete that yet{% else %}Notice{% endif %}";
+                    {% if "request sent" in message.message|lower %}
+                        title = "Appointment request sent";
+                    {% endif %}
+                    {% if 'dialog-confirmed' in message.tags %}
+                        title = "Appointment Confirmed";
+                    {% endif %}
+                    {% if 'dialog-completed' in message.tags %}
+                        title = "Case Completed";
+                    {% endif %}
+
+                    window.triggerUniversalModal(
+                        title,
+                        "{{ message.message|escapejs }}",
+                        "{% if 'success' in message.tags %}success{% else %}error{% endif %}",
+                        "{% if 'success' in message.tags %}Continue{% else %}Understood{% endif %}"
+                    );
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+      })();
+    </script>
+    {% block floating_chat_widget %}
+        {% if user.is_authenticated %}
+            {% if user.role == 'CAREGIVER' or user.role == 'CLINICIAN' and user.clinician_verified %}
+                {% include "chatbot/widget.html" %}
+            {% endif %}
+        {% endif %}
+    {% endblock %}
+</body>
+
+</html>

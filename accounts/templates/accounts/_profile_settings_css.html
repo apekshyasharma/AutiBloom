@@ -1,0 +1,45 @@
+<style>
+    .profile-card, .settings-card {
+        background: #fff; border-radius: 20px; border: 1px solid rgba(0,0,0,0.05);
+        box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+    }
+    .section-label {
+        font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+        letter-spacing: 0.5px; color: #94a3b8; margin-bottom: 4px;
+    }
+    .avatar-ring {
+        width: 140px; height: 140px; border-radius: 50%;
+        background: linear-gradient(135deg, #34d399, #059669);
+        display: flex; align-items: center; justify-content: center;
+        color: #fff; font-weight: 800; font-size: 3rem;
+        box-shadow: 0 10px 30px rgba(5,150,105,0.2);
+        overflow: hidden; position: relative;
+    }
+    .avatar-ring img { width: 100%; height: 100%; object-fit: cover; }
+    .avatar-ring .badge-role {
+        position: absolute; bottom: 0; right: 0;
+        padding: 4px 10px; font-size: 0.65rem; font-weight: 700;
+        border-radius: 999px; border: 3px solid #fff;
+        letter-spacing: 0.3px; text-transform: uppercase;
+    }
+    .role-caregiver { background: #059669; color: #fff; }
+    .role-clinician { background: #0ea5e9; color: #fff; }
+    .role-admin     { background: #ef4444; color: #fff; }
+    .verified-pill {
+        background: rgba(16,185,129,0.12); color: #047857; border: 1px solid rgba(16,185,129,0.25);
+        border-radius: 999px; padding: 3px 10px; font-size: 0.72rem; font-weight: 700;
+        display: inline-flex; align-items: center; gap: 4px;
+    }
+    .form-label { font-weight: 600; font-size: 0.88rem; color: #334155; }
+    .form-control, .form-select { border-radius: 10px; }
+    .form-text { font-size: 0.78rem; }
+    .pref-row {
+        display: flex; align-items: flex-start; justify-content: space-between;
+        gap: 1rem; padding: 1rem 0; border-bottom: 1px solid #f1f5f9;
+    }
+    .pref-row:last-child { border-bottom: 0; }
+    .pref-row .text h6 { font-weight: 700; margin-bottom: 0.2rem; color: #0f172a; font-size: 0.95rem; }
+    .pref-row .text p { color: #64748b; font-size: 0.82rem; margin: 0; line-height: 1.5; }
+    .form-check-input { cursor: pointer; }
+    .form-switch .form-check-input { width: 2.6em; height: 1.3em; }
+</style>

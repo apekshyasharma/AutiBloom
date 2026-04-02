@@ -1,0 +1,62 @@
+{% extends 'accounts/base.html' %}
+
+{% block title %}Admin Dashboard - AutiBloom{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="fw-bold text-teal-600">Admin Dashboard</h1>
+            <p class="text-muted lead">Welcome back, {{ user.username }}. Manage your platform securely.</p>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Quick Action: Manage Clinicians -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm border-0 bg-white">
+                <div class="card-body text-center p-5">
+                    <div class="icon-circle mb-3 mx-auto bg-light rounded-circle d-flex align-items-center justify-content-center"
+                        style="width: 80px; height: 80px;">
+                        <i class="bi bi-people fs-1 text-primary"></i>
+                    </div>
+                    <h3 class="card-title fw-bold">Manage Clinicians</h3>
+                    <p class="card-text text-muted my-3">View list, verify accounts, and manage access.</p>
+                    <a href="{% url 'clinician_list' %}" class="btn btn-outline-primary stretched-link">View List</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Action: Create Clinician -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm border-0 bg-white">
+                <div class="card-body text-center p-5">
+                    <div class="icon-circle mb-3 mx-auto bg-light rounded-circle d-flex align-items-center justify-content-center"
+                        style="width: 80px; height: 80px;">
+                        <i class="bi bi-person-plus fs-1 text-success"></i>
+                    </div>
+                    <h3 class="card-title fw-bold">Create Clinician</h3>
+                    <p class="card-text text-muted my-3">Onboard a new clinician securely.</p>
+                    <a href="{% url 'create_clinician' %}" class="btn btn-outline-success stretched-link">Create
+                        Account</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Action: Placeholder -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm border-0 bg-light">
+                <div class="card-body text-center p-5 opacity-75">
+                    <div class="icon-circle mb-3 mx-auto bg-white rounded-circle d-flex align-items-center justify-content-center"
+                        style="width: 80px; height: 80px;">
+                        <i class="bi bi-gear fs-1 text-secondary"></i>
+                    </div>
+                    <h3 class="card-title fw-bold">System Settings</h3>
+                    <p class="card-text text-muted my-3">Platform configurations (Coming Soon).</p>
+                    <button class="btn btn-outline-secondary disabled">More Options</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
