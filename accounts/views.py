@@ -62,7 +62,15 @@ def dashboard(request):
         # block unverified clinicians
         if not user.clinician_verified:
             return render(request, "accounts/clinician_pending.html")
-        return render(request, "accounts/dashboard_clinician.html")
+        
+        # Determine if this is a first-time clinician (0 historical appointments)
+        from appointments.models import Appointment
+        has_appointments = Appointment.objects.filter(clinician=user).exists()
+        is_first_time = not has_appointments
+        
+        return render(request, "accounts/dashboard_clinician.html", {
+            "is_first_time": is_first_time
+        })
 
     # Caregiver onboarding redirect
     from wellbeing.models import CaregiverChild

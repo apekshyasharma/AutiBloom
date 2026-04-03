@@ -10,26 +10,213 @@
     .stat-icon { width: 52px; height: 52px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
     .quick-link { border-radius: 16px; border: 1px solid rgba(0,0,0,0.06); padding: 1.5rem; transition: all 0.2s; cursor: pointer; text-decoration: none; display: block; }
     .quick-link:hover { background: #f8fafc; box-shadow: 0 4px 16px rgba(0,0,0,0.06); }
+
+    /* =====================================================
+       AESTHETIC ONBOARDING TOUR (CLINICIAN)
+       ===================================================== */
+    #tour-spotlight {
+      position: fixed;
+      pointer-events: none;
+      z-index: 99998;
+      border-radius: 20px;
+      box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.75);
+      display: none;
+      border: 2px solid #3b82f6; /* Blue Accent for Clinicians */
+    }
+
+    #tour-tooltip {
+      position: absolute;
+      z-index: 99999;
+      width: 320px;
+      background: rgba(15, 23, 42, 0.95);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 24px;
+      padding: 1.5rem;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+      color: #fff;
+      display: none;
+      font-family: 'Inter', sans-serif;
+      animation: tour-pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    }
+
+    @keyframes tour-pop {
+      from { opacity: 0; transform: scale(0.9) translateY(10px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    .tour-progress {
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #3b82f6;
+      margin-bottom: 0.5rem;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .tour-title {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 1.15rem;
+      font-weight: 800;
+      margin-bottom: 0.75rem;
+      letter-spacing: -0.02em;
+      line-height: 1.25;
+    }
+
+    .tour-body {
+      font-size: 0.88rem;
+      line-height: 1.5;
+      color: #cbd5e1;
+      margin-bottom: 1.25rem;
+    }
+
+    .tour-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .tour-btn {
+      font-size: 0.8rem;
+      font-weight: 700;
+      padding: 0.5rem 1rem;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      border: none;
+    }
+
+    .tour-btn-skip {
+      background: transparent;
+      color: #94a3b8;
+    }
+    .tour-btn-skip:hover {
+      color: #fff;
+    }
+
+    .tour-btn-next {
+      background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(59,130,246,0.3);
+    }
+    .tour-btn-next:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(59,130,246,0.4);
+    }
+
+    /* =====================================================
+       RESEARCH ROADMAP — "COMING SOON" CARDS
+       ===================================================== */
+    .roadmap-card {
+      position: relative;
+      border-radius: 18px;
+      border: 1px dashed rgba(99, 102, 241, 0.35);
+      background: linear-gradient(135deg, #f5f3ff 0%, #eef2ff 100%);
+      padding: 1.5rem 1.5rem 1.25rem;
+      height: 100%;
+      transition: all 0.2s ease;
+      overflow: hidden;
+    }
+    .roadmap-card:hover {
+      border-color: rgba(99, 102, 241, 0.6);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(99, 102, 241, 0.12);
+    }
+    .roadmap-card::after {
+      content: '';
+      position: absolute;
+      top: 0; right: 0;
+      width: 120px; height: 120px;
+      background: radial-gradient(circle at top right, rgba(167, 139, 250, 0.18), transparent 70%);
+      pointer-events: none;
+    }
+    .roadmap-icon {
+      width: 46px; height: 46px;
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.4rem;
+      background: linear-gradient(135deg, #a78bfa, #6366f1);
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+    }
+    .roadmap-badge {
+      display: inline-flex; align-items: center; gap: 0.3rem;
+      font-size: 0.65rem; font-weight: 800;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      background: rgba(99, 102, 241, 0.12);
+      color: #4f46e5;
+      padding: 0.25rem 0.6rem;
+      border-radius: 100px;
+    }
+    .roadmap-title {
+      font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+      font-weight: 800;
+      font-size: 1rem;
+      color: #1e293b;
+      margin: 0.75rem 0 0.4rem;
+      letter-spacing: -0.01em;
+    }
+    .roadmap-desc {
+      font-size: 0.82rem;
+      color: #64748b;
+      line-height: 1.55;
+      margin: 0;
+    }
+    .roadmap-header-bar {
+      display: flex; align-items: center; gap: 0.75rem;
+      margin-bottom: 0.75rem;
+    }
+    .roadmap-header-bar h5 {
+      font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+      font-weight: 800;
+      font-size: 1.1rem;
+      color: #1e293b;
+      margin: 0;
+      letter-spacing: -0.015em;
+    }
+    .roadmap-pill {
+      font-size: 0.7rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.06em;
+      background: linear-gradient(135deg, #4f46e5, #6366f1);
+      color: #fff;
+      padding: 0.25rem 0.7rem;
+      border-radius: 100px;
+      box-shadow: 0 2px 8px rgba(79, 70, 229, 0.2);
+    }
+    .roadmap-disclaimer {
+      font-size: 0.75rem;
+      color: #94a3b8;
+      font-style: italic;
+      margin-top: 1rem;
+      text-align: center;
+    }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="row mb-4">
     <div class="col-12">
-        <div class="d-flex align-items-center gap-3 mb-1">
-            <h1 class="fw-bold mb-0" style="letter-spacing: -0.5px;">Clinician Workspace</h1>
+        <div class="d-flex align-items-center gap-3 mb-1 flex-wrap">
+            <h1 class="fw-bold mb-0" id="clinicianTitle" style="letter-spacing: -0.5px;">Clinician Workspace</h1>
             {% if user.clinician_verified %}
             <span class="badge rounded-pill px-3 py-2 fw-semibold" style="background: linear-gradient(135deg, #34d399, #059669); color: #fff; font-size: 0.8rem;">
                 <i class="bi bi-patch-check-fill me-1"></i>Verified
             </span>
             {% endif %}
+            <button onclick="startOnboardingTour()" class="btn btn-outline-primary rounded-pill px-3 py-1.5 fw-semibold ms-auto" id="tourReplayCta" style="font-size: 0.85rem; border: 1.5px solid rgba(59,130,246,0.3); background: rgba(59,130,246,0.05); color: #2563eb;">
+                <i class="bi bi-compass-fill me-1"></i>Take a Tour Guide
+            </button>
         </div>
         <p class="text-muted mb-0">Secure access for clinical professionals.</p>
     </div>
 </div>
 
 <!-- Privacy Banner -->
-<div class="d-flex align-items-center gap-3 p-4 rounded-4 mb-4 shadow-sm" style="background: linear-gradient(135deg, #e0f2fe, #dbeafe); border: 1px solid #bfdbfe;">
+<div class="d-flex align-items-center gap-3 p-4 rounded-4 mb-4 shadow-sm" id="privacyReminder" style="background: linear-gradient(135deg, #e0f2fe, #dbeafe); border: 1px solid #bfdbfe;">
     <div class="d-flex align-items-center justify-content-center rounded-3 flex-shrink-0" style="width: 44px; height: 44px; background: #93c5fd;">
         <i class="bi bi-shield-lock-fill text-white fs-5"></i>
     </div>
@@ -42,7 +229,7 @@
 <!-- Quick Actions -->
 <div class="row g-4 mb-4">
     <div class="col-md-6">
-        <a href="{% url 'clinician_appointment_list' %}" class="quick-link bg-white shadow-sm h-100">
+        <a href="{% url 'clinician_appointment_list' %}" id="clinicianAppointmentsLink" class="quick-link bg-white shadow-sm h-100">
             <div class="d-flex align-items-center gap-3 mb-3">
                 <div class="stat-icon bg-success bg-opacity-10 text-success"><i class="bi bi-calendar2-check"></i></div>
                 <div>
@@ -51,12 +238,12 @@
                 </div>
             </div>
             <div class="d-flex align-items-center justify-content-between">
-                <span class="text-muted" style="font-size: 0.85rem;">Review pending consultations →</span>
+                <span class="text-muted" style="font-size: 0.85rem;">Review pending consultations</span>
             </div>
         </a>
     </div>
     <div class="col-md-6">
-        <div class="quick-link bg-white shadow-sm h-100" style="cursor: default;">
+        <div id="clinicianReportsInfo" class="quick-link bg-white shadow-sm h-100" style="cursor: default;">
             <div class="d-flex align-items-center gap-3 mb-3">
                 <div class="stat-icon bg-primary bg-opacity-10 text-primary"><i class="bi bi-file-earmark-medical"></i></div>
                 <div>
@@ -72,7 +259,7 @@
 </div>
 
 <!-- Guidance Section -->
-<div class="card border-0 shadow-sm rounded-4">
+<div class="card border-0 shadow-sm rounded-4" id="clinicianGuidanceCard">
     <div class="card-body p-4">
         <h5 class="fw-bold mb-3"><i class="bi bi-lightbulb text-warning me-2"></i>How It Works</h5>
         <div class="row g-3">
@@ -106,4 +293,284 @@
         </div>
     </div>
 </div>
+
+<!-- Research Roadmap — future expansions previewed for clinician collaborators -->
+<div class="card border-0 shadow-sm rounded-4 mt-4" id="clinicianRoadmapCard">
+    <div class="card-body p-4">
+        <div class="roadmap-header-bar">
+            <i class="bi bi-stars" style="color: #6366f1; font-size: 1.25rem;"></i>
+            <h5>Research Roadmap</h5>
+            <span class="roadmap-pill">Coming Soon</span>
+        </div>
+        <p class="text-muted mb-3" style="font-size: 0.88rem;">
+            Planned extension of the AutiBloom platform for clinical research partnerships.
+        </p>
+        <div class="row g-3 justify-content-center">
+            <div class="col-md-8">
+                <div class="roadmap-card">
+                    <div class="d-flex align-items-start justify-content-between">
+                        <div class="roadmap-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-label="DNA helix">
+                                <path d="M4 3c0 4 4 5 8 9s8 5 8 9"></path>
+                                <path d="M20 3c0 4-4 5-8 9s-8 5-8 9"></path>
+                                <line x1="6" y1="6.5" x2="18" y2="6.5"></line>
+                                <line x1="7" y1="10" x2="17" y2="10"></line>
+                                <line x1="7" y1="14" x2="17" y2="14"></line>
+                                <line x1="6" y1="17.5" x2="18" y2="17.5"></line>
+                            </svg>
+                        </div>
+                        <span class="roadmap-badge"><i class="bi bi-clock-history"></i>Planned</span>
+                    </div>
+                    <h6 class="roadmap-title">Genetic Screening Integration</h6>
+                    <p class="roadmap-desc">
+                        Combine longitudinal behavioural tracking with genomic biomarker panels (e.g. SHANK3, CHD8, MECP2 variants) for multi-modal autism risk assessment alongside the existing wellbeing-tracking workflow.
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="roadmap-disclaimer">
+            <i class="bi bi-info-circle me-1"></i>
+            Research collaboration inquiries welcome. All future features will undergo IRB review before deployment.
+        </div>
+    </div>
+</div>
+
+<script>
+/* ── Aesthetic Clinician Onboarding Tour ── */
+const CLINICIAN_TOUR_STEPS = [
+  {
+    title: "Welcome to AutiBloom! 🩺",
+    body: "We are thrilled to welcome you to the secure Clinical Workspace, giving you data-driven precision to manage pediatric care.",
+    target: null
+  },
+  {
+    title: "Supportive Telehealth Ecosystem 📚",
+    body: "AutiBloom replaces retrospective recall bias with continuous home-based digital phenotyping, giving you highly objective longitudinal insight.",
+    target: null
+  },
+  {
+    title: "Verified Clinical Credentials 🛡️",
+    body: "Your profile is verified. All interactions on your dashboard run in compliance with secure role separation and pediatric data hygiene guidelines.",
+    target: "#clinicianTitle"
+  },
+  {
+    title: "Medical Privacy Reminders 🔒",
+    body: "Patient privacy is paramount. Always ensure you review detailed children check-ins, SHAP attributions, and therapist records in a private environment.",
+    target: "#privacyReminder"
+  },
+  {
+    title: "Active Appointments Queue 📅",
+    body: "Click here to navigate to your consultations planner. Review new booking slots, check patient histories, and issue support actions.",
+    target: "#clinicianAppointmentsLink"
+  },
+  {
+    title: "Patient Reports Integration 📄",
+    body: "All child weekly check-in records are automatically formatted into 1-page EHR-ready summaries, attached directly to their appointment slots.",
+    target: "#clinicianReportsInfo"
+  },
+  {
+    title: "Explainable AI (SHAP) & Narrative 🧠",
+    body: "Review mathematical SHAP contribution scores and AI narrative summaries inside patient profiles to instantly demystify predicted developmental severity risks.",
+    target: null
+  },
+  {
+    title: "Clinical Support Plans 📝",
+    body: "Your 3-step guideline for treatment: receive consultation requests, analyze SHAP severity attributions, and issue clinical support plans shared directly with caregivers.",
+    target: "#clinicianGuidanceCard"
+  },
+  {
+    title: "Clinical Workspace Ready! 🌟",
+    body: "You are fully equipped. Welcome to a more transparent, mathematically validated, and highly collaborative pediatric care workflow!",
+    target: null
+  }
+];
+
+class AutiBloomOnboarding {
+  constructor(steps, role) {
+    this.steps = steps;
+    this.role = role;
+    this.currentStep = 0;
+    this.spotlight = null;
+    this.tooltip = null;
+    this.isActive = false;
+    this._rafId = null;
+  }
+
+  init() {
+    if (!document.getElementById('tour-spotlight')) {
+      this.spotlight = document.createElement('div');
+      this.spotlight.id = 'tour-spotlight';
+      document.body.appendChild(this.spotlight);
+    } else {
+      this.spotlight = document.getElementById('tour-spotlight');
+    }
+
+    if (!document.getElementById('tour-tooltip')) {
+      this.tooltip = document.createElement('div');
+      this.tooltip.id = 'tour-tooltip';
+      document.body.appendChild(this.tooltip);
+    } else {
+      this.tooltip = document.getElementById('tour-tooltip');
+    }
+
+    this.isActive = true;
+    this.showStep();
+    this.startUpdateLoop();
+  }
+
+  startUpdateLoop() {
+    const loop = () => {
+      if (!this.isActive) return;
+      
+      const step = this.steps[this.currentStep];
+      if (step.target) {
+        const targetEl = document.querySelector(step.target);
+        if (targetEl) {
+          this.highlight(targetEl);
+          this.positionTooltip(targetEl);
+        } else {
+          this.removeHighlight();
+          this.centerTooltip();
+        }
+      } else {
+        this.removeHighlight();
+        this.centerTooltip();
+      }
+      
+      this._rafId = requestAnimationFrame(loop);
+    };
+    this._rafId = requestAnimationFrame(loop);
+  }
+
+  showStep() {
+    const step = this.steps[this.currentStep];
+    const isLast = this.currentStep === this.steps.length - 1;
+
+    if (step.target) {
+      const targetEl = document.querySelector(step.target);
+      if (targetEl) {
+        targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+
+    this.tooltip.innerHTML = `
+      <div class="tour-progress">
+        <span>Step ${this.currentStep + 1} of ${this.steps.length}</span>
+        <span style="color: rgba(255,255,255,0.4)">${this.role}</span>
+      </div>
+      <h4 class="tour-title">${step.title}</h4>
+      <p class="tour-body">${step.body}</p>
+      <div class="tour-footer">
+        <button class="tour-btn tour-btn-skip" onclick="window.activeTour.skip()">${isLast ? 'Dismiss' : 'Skip'}</button>
+        <div style="display:flex; gap:0.5rem;">
+          ${this.currentStep > 0 ? `<button class="tour-btn tour-btn-skip" style="color:#fff;" onclick="window.activeTour.prev()">Back</button>` : ''}
+          <button class="tour-btn tour-btn-next" onclick="window.activeTour.next()">${isLast ? 'Get Started 🎉' : 'Next'}</button>
+        </div>
+      </div>
+    `;
+
+    this.tooltip.style.display = 'block';
+  }
+
+  highlight(el) {
+    const rect = el.getBoundingClientRect();
+    this.spotlight.style.display = 'block';
+    this.spotlight.style.top = `${rect.top - 8}px`;
+    this.spotlight.style.left = `${rect.left - 8}px`;
+    this.spotlight.style.width = `${rect.width + 16}px`;
+    this.spotlight.style.height = `${rect.height + 16}px`;
+  }
+
+  removeHighlight() {
+    this.spotlight.style.display = 'none';
+  }
+
+  centerTooltip() {
+    this.tooltip.style.position = 'fixed';
+    this.tooltip.style.top = '50%';
+    this.tooltip.style.left = '50%';
+    this.tooltip.style.transform = 'translate(-50%, -50%)';
+    this.tooltip.style.boxShadow = '0 30px 90px rgba(0,0,0,0.8)';
+  }
+
+  positionTooltip(targetEl) {
+    if (!targetEl) {
+      this.centerTooltip();
+      return;
+    }
+
+    const rect = targetEl.getBoundingClientRect();
+    this.tooltip.style.position = 'absolute';
+    this.tooltip.style.transform = 'none';
+
+    let top = rect.bottom + window.scrollY + 16;
+    let left = rect.left + window.scrollX + (rect.width - 320) / 2;
+
+    if (left < 16) left = 16;
+    if (left + 320 > window.innerWidth - 16) {
+      left = window.innerWidth - 320 - 16;
+    }
+
+    if (rect.bottom + 250 > window.innerHeight) {
+      top = rect.top + window.scrollY - this.tooltip.offsetHeight - 160; 
+      if (top < window.scrollY + 16) {
+        top = rect.bottom + window.scrollY + 16;
+      }
+    }
+
+    this.tooltip.style.top = `${top}px`;
+    this.tooltip.style.left = `${left}px`;
+  }
+
+  next() {
+    if (this.currentStep < this.steps.length - 1) {
+      this.currentStep++;
+      this.showStep();
+    } else {
+      this.finish();
+    }
+  }
+
+  prev() {
+    if (this.currentStep > 0) {
+      this.currentStep--;
+      this.showStep();
+    }
+  }
+
+  skip() {
+    this.finish();
+  }
+
+  finish() {
+    this.isActive = false;
+    if (this._rafId) cancelAnimationFrame(this._rafId);
+    this.tooltip.style.display = 'none';
+    this.spotlight.style.display = 'none';
+    localStorage.setItem(`autibloom_tour_completed_${this.role.toLowerCase()}`, 'true');
+    
+    const title = document.getElementById('clinicianTitle');
+    if (title) {
+      title.style.transition = 'color 0.5s ease';
+      title.style.color = '#3b82f6';
+      setTimeout(() => title.style.color = 'inherit', 1500);
+    }
+  }
+}
+
+function startOnboardingTour() {
+  window.activeTour = new AutiBloomOnboarding(CLINICIAN_TOUR_STEPS, 'CLINICIAN');
+  window.activeTour.init();
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const completed = localStorage.getItem('autibloom_tour_completed_clinician');
+  const isFirstTime = {% if is_first_time %}true{% else %}false{% endif %};
+  if (isFirstTime && !completed) {
+    setTimeout(() => {
+      startOnboardingTour();
+    }, 1200);
+  }
+});
+</script>
 {% endblock %}
