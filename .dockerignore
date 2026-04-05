@@ -1,0 +1,51 @@
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Git
+.git/
+.gitignore
+
+# IDE / Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Test artifacts
+test_out.txt
+test_stderr.txt
+test_output.txt
+test_results.txt
+coverage_html_report/
+.coverage
+ui_snapshots/
+
+# SQLite (we use Postgres in production)
+db.sqlite3
+db.sqlite3-journal
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Gemini / AI tooling
+.gemini/
+
+# External RAG service (has its own container)
+external/
+
+# Data & ML artifacts (mount as volumes instead)
+data/
+ml/
+
+# Docker
+Dockerfile
+docker-compose.yml
+.dockerignore

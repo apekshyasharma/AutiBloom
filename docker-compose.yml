@@ -1,0 +1,49 @@
+# ── AutiBloom – Docker Compose ──────────────────────────────────────
+version: "3.9"
+
+services:
+  # ── PostgreSQL Database ────────────────────────────────────────────
+  db:
+    image: postgres:16-alpine
+    restart: always
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-autibloom_db}
+      POSTGRES_USER: ${POSTGRES_USER:-autibloom_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-ChangeThisPassword!}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-autibloom_user}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ── Django Web Application ────────────────────────────────────────
+  web:
+    image: ${DOCKER_IMAGE:-autibloom-web:latest}
+    build: .
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      - DJANGO_SETTINGS_MODULE=autibloom.settings
+      - SECRET_KEY=${SECRET_KEY:-change-me-in-production}
+      - DEBUG=${DEBUG:-False}
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS:-localhost,127.0.0.1}
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_NAME=${POSTGRES_DB:-autibloom_db}
+      - DB_USER=${POSTGRES_USER:-autibloom_user}
+      - DB_PASSWORD=${POSTGRES_PASSWORD:-ChangeThisPassword!}
+      - RAG_SERVICE_URL=${RAG_SERVICE_URL:-http://rag:8001}
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - static_files:/app/staticfiles
+
+volumes:
+  postgres_data:
+  static_files:
