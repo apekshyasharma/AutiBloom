@@ -8,7 +8,23 @@
 body {
     background-color: var(--ab-bg);
     color: var(--ab-text);
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, system-ui, sans-serif;
+    font-feature-settings: 'cv11', 'ss01', 'ss03';
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+}
+
+h1, h2, h3, h4, h5, h6,
+.display-1, .display-2, .display-3, .display-4, .display-5, .display-6 {
+    font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, sans-serif;
+    letter-spacing: -0.015em;
+}
+
+/* Tabular numbers for any element showing scores / counts / dates */
+.stat-val, .domain-score, .badge, .display-5, .chip-date,
+table, .table, [data-numeric] {
+    font-variant-numeric: tabular-nums;
 }
 
 .btn-primary {
