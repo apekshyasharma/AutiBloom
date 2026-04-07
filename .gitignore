@@ -62,6 +62,9 @@ scratch/
 
 # Unused Setup / Utility Scripts
 make_testing_zip.py
+generate.py
+generate_root.py
+generate_history.py
 
 # Pictures and Media (Ignore untracked images to keep repo clean)
 *.png
@@ -70,3 +73,82 @@ make_testing_zip.py
 *.gif
 *.webp
 *.svg
+
+# Whitelist diagrams folder (project documentation images)
+!diagrams/
+!diagrams/**
+
+# Playwright / Selenium / E2E artifacts
+playwright-report/
+test-results/
+ui_inspect_out/
+
+# Python tooling caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.tox/
+.nox/
+
+# Coverage reports
+htmlcov/
+coverage.xml
+.coverage.*
+*.cover
+
+# Jupyter checkpoints
+.ipynb_checkpoints/
+
+# Build / packaging
+build/
+dist/
+*.egg
+*.egg-info/
+*.whl
+
+# Local Python artefacts
+pip-log.txt
+pip-delete-this-directory.txt
+*.pyc
+*.pyo
+*.pyd
+
+# SQLite auxiliary files (WAL / shared memory)
+*.sqlite3-shm
+*.sqlite3-wal
+*.db-shm
+*.db-wal
+
+# Editor swap / backup files
+*.bak
+*.tmp
+*.swp
+*.swo
+*~
+.~lock.*#
+
+# Additional .env variants (in addition to .env above)
+.env.local
+.env.dev
+.env.development
+.env.test
+.env.staging
+
+# Windows shell debris
+desktop.ini
+
+# Generated PDF exports from app (model output, not source artefacts)
+/exports/
+*.exported.pdf
+
+# PostgreSQL — local data dirs, dumps, history, password files
+postgres_data/
+pgdata/
+db_data/
+*.dump
+*.sql.gz
+*.sql.bz2
+*.backup
+*.pgsql.log
+.psql_history
+.pgpass
