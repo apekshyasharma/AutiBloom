@@ -1,0 +1,60 @@
+:root {
+    --ab-primary: #0d9488; /* Teal-600 */
+    --ab-primary-hover: #0f766e; /* Teal-700 */
+    --ab-bg: #f8fafc; /* Slate-50 */
+    --ab-text: #334155; /* Slate-700 */
+}
+
+body {
+    background-color: var(--ab-bg);
+    color: var(--ab-text);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.btn-primary {
+    background-color: var(--ab-primary);
+    border-color: var(--ab-primary);
+}
+
+.btn-primary:hover {
+    background-color: var(--ab-primary-hover);
+    border-color: var(--ab-primary-hover);
+}
+
+.card {
+    border: none;
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    border-radius: 0.75rem;
+}
+
+.navbar {
+    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+    background-color: #ffffff;
+}
+
+.nav-link {
+    font-weight: 500;
+    color: var(--ab-text);
+}
+
+.badge-role {
+    font-size: 0.8em;
+    padding: 0.4em 0.8em;
+    border-radius: 9999px;
+}
+
+.form-control:focus {
+    border-color: var(--ab-primary);
+    box-shadow: 0 0 0 0.25rem rgba(13, 148, 136, 0.25);
+}
+
+/* Spinner overlay for submit */
+.spinner-btn {
+    display: none;
+}
+.submitting .spinner-btn {
+    display: inline-block;
+}
+.submitting .submit-text {
+    display: none;
+}

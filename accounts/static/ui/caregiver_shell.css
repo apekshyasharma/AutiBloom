@@ -1,0 +1,215 @@
+/* Caregiver UI Shell */
+:root {
+  --sidebar-collapsed: 72px;
+  --sidebar-expanded: 260px;
+  --shell-bg: #f8fafc;
+  --shell-sidebar-bg: #ffffff;
+  --shell-sidebar-border: #e2e8f0;
+  --shell-text: #475569;
+  --shell-text-hover: #0f172a;
+  --shell-active-bg: #e0e7ff;
+  --shell-active-text: #4f46e5;
+  --shell-topbar-bg: #ffffff;
+  --shell-topbar-border: #e2e8f0;
+}
+
+body {
+  background-color: var(--shell-bg);
+  min-height: 100vh;
+  margin: 0;
+  display: flex;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+/* ── Sidebar ── */
+.shell-sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: var(--sidebar-collapsed);
+  background-color: var(--shell-sidebar-bg);
+  border-right: 1px solid var(--shell-sidebar-border);
+  z-index: 1040;
+  transition: width 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+/* Hover expand overlay - shadow added when expanded to float above content */
+.shell-sidebar:hover, .shell-sidebar.sidebar-pinned {
+  width: var(--sidebar-expanded);
+  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.05);
+}
+
+.sidebar-brand {
+  height: 64px;
+  display: flex;
+  align-items: center;
+  padding: 0 0 0 20px;
+  border-bottom: 1px solid var(--shell-sidebar-border);
+  color: var(--shell-active-text);
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 1.25rem;
+}
+
+.sidebar-brand i {    
+  font-size: 1.5rem;
+  width: 32px;
+  display: inline-flex;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.brand-text {
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  margin-left: 12px;
+}
+
+.shell-sidebar:hover .brand-text, .shell-sidebar.sidebar-pinned .brand-text {
+  opacity: 1;
+}
+
+.sidebar-nav {
+  padding: 1rem 0;
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.sidebar-nav::-webkit-scrollbar {
+  width: 4px;
+}
+.sidebar-nav::-webkit-scrollbar-thumb {
+  background-color: var(--shell-sidebar-border);
+  border-radius: 4px;
+}
+
+.nav-link-shell {
+  display: flex;
+  align-items: center;
+  padding: 10px 0 10px 24px;
+  color: var(--shell-text);
+  margin: 4px 12px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 500;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.nav-link-shell:hover {
+  background-color: #f1f5f9;
+  color: var(--shell-text-hover);
+}
+
+.nav-link-shell.active {
+  background-color: var(--shell-active-bg);
+  color: var(--shell-active-text);
+}
+
+.nav-link-shell i {
+  font-size: 1.25rem;
+  width: 24px;
+  display: inline-flex;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.nav-text {
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  margin-left: 16px;
+}
+
+.shell-sidebar:hover .nav-text, .shell-sidebar.sidebar-pinned .nav-text {
+  opacity: 1;
+}
+
+/* Sidebar bottom (Profile & Logout) */
+.sidebar-bottom {
+  border-top: 1px solid var(--shell-sidebar-border);
+  padding: 1rem 0;
+}
+
+/* ── Main Content Area ── */
+.shell-main {
+  flex: 1;
+  margin-left: var(--sidebar-collapsed);
+  display: flex;
+  flex-direction: column;
+  min-width: 0; /* Prevents flexbox escaping boundary */
+}
+
+/* ── Topbar ── */
+.shell-topbar {
+  height: 64px;
+  background-color: var(--shell-topbar-bg);
+  border-bottom: 1px solid var(--shell-topbar-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 2rem;
+  position: sticky;
+  top: 0;
+  z-index: 1030;
+}
+
+.topbar-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--shell-text-hover);
+  margin: 0;
+}
+
+/* Mobile Toggle */
+.mobile-toggle {
+  display: none;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: var(--shell-text);
+  margin-right: 1rem;
+}
+
+/* ── Responsive Mobile ── */
+@media (max-width: 991.98px) {
+  .shell-sidebar {
+    transform: translateX(-100%);
+    width: var(--sidebar-expanded);
+  }
+  
+  .shell-sidebar.offcanvas-show {
+    transform: translateX(0);
+  }
+  
+  .shell-sidebar .nav-text, .shell-sidebar .brand-text {
+    opacity: 1; /* Always show text on mobile */
+  }
+
+  .shell-main {
+    margin-left: 0;
+  }
+  
+  .mobile-toggle {
+    display: inline-block;
+  }
+  
+  .shell-topbar {
+    padding: 0 1rem;
+  }
+}
+
+/* Utility to ensure consistent content padding */
+.shell-content {
+  padding: 2rem;
+  flex: 1;
+}
+@media (max-width: 575.98px) {
+  .shell-content {
+    padding: 1rem;
+  }
+}

@@ -1,0 +1,61 @@
+/* community.css */
+.chat-window {
+    height: 65vh;
+    overflow-y: auto;
+    background-color: #f8f9fa; /* Light gray background */
+    border-radius: 0.5rem 0.5rem 0 0;
+}
+
+.chat-bubble {
+    max-width: 80%;
+    padding: 0.75rem 1rem;
+    border-radius: 1rem;
+    position: relative;
+    word-break: break-word;
+}
+
+.chat-bubble-me {
+    background-color: #e3f2fd; /* Light blue */
+    color: #0d6efd;
+    border-bottom-right-radius: 0.25rem;
+}
+
+.chat-bubble-other {
+    background-color: #ffffff;
+    color: #212529;
+    border-bottom-left-radius: 0.25rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.composer-container {
+    background-color: white;
+    border-radius: 0 0 0.5rem 0.5rem;
+    border-top: 1px solid #e9ecef;
+}
+
+.thread-list-item {
+    transition: background-color 0.2s ease-in-out;
+    border-radius: 0.5rem;
+    border: 1px solid transparent;
+}
+
+.thread-list-item:hover {
+    background-color: #f8f9fa;
+    border-color: #dee2e6;
+}
+
+.profile-card {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.profile-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Empty states */
+.empty-state-icon {
+    font-size: 4rem;
+    color: #dee2e6;
+    margin-bottom: 1rem;
+}

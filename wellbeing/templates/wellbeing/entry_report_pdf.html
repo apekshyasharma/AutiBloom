@@ -1,0 +1,484 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AutiBloom Clinical Report — {{ entry.child.name }}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <style>
+        /* ─── Reset & Base ────────────────────────────────────────── */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            color: #0f172a; background: #fff;
+            font-size: 10.5pt; line-height: 1.55;
+            padding: 40px 48px;
+        }
+        h1,h2,h3,h4 { font-family: 'Plus Jakarta Sans', 'Inter', sans-serif; }
+
+        /* ─── Page Layout (Playwright uses @page for margins) ───── */
+        @page {
+            size: A4;
+            margin: 20mm 18mm 25mm 18mm;
+        }
+
+        /* ─── Clinical Header ────────────────────────────────────── */
+        .pdf-header {
+            display: flex; justify-content: space-between; align-items: flex-start;
+            border-bottom: 2.5px solid #0f172a;
+            padding-bottom: 14px; margin-bottom: 28px;
+        }
+        .pdf-header .brand {
+            display: flex; align-items: center; gap: 8px;
+        }
+        .pdf-header .brand-icon {
+            width: 32px; height: 32px; border-radius: 8px;
+            background: linear-gradient(135deg, #14b8a6, #0f766e);
+            display: flex; align-items: center; justify-content: center;
+            color: #fff; font-weight: 800; font-size: 16px;
+        }
+        .pdf-header .brand-name {
+            font-size: 22px; font-weight: 800; color: #0f172a;
+            letter-spacing: -0.03em;
+        }
+        .pdf-header .brand-sub {
+            font-size: 10px; font-weight: 700; letter-spacing: 0.1em;
+            text-transform: uppercase; color: #0f766e; margin-top: 2px;
+        }
+        .pdf-header .patient-info {
+            text-align: right; font-size: 9.5pt; color: #334155; line-height: 1.65;
+        }
+        .pdf-header .patient-info strong { color: #0f172a; }
+
+        /* ─── Section Titles ─────────────────────────────────────── */
+        .section-title {
+            font-size: 14px; font-weight: 800; color: #0f172a;
+            display: flex; align-items: center; gap: 8px;
+            margin-bottom: 14px; padding-bottom: 8px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .section-title .icon {
+            width: 26px; height: 26px; border-radius: 7px;
+            display: inline-flex; align-items: center; justify-content: center;
+            font-size: 13px; font-weight: 700; color: #fff; flex-shrink: 0;
+        }
+        .icon-teal { background: linear-gradient(135deg, #14b8a6, #0f766e); }
+        .icon-indigo { background: linear-gradient(135deg, #6366f1, #4f46e5); }
+        .icon-emerald { background: linear-gradient(135deg, #10b981, #059669); }
+
+        /* ─── Summary Grid ───────────────────────────────────────── */
+        .summary-section { margin-bottom: 28px; }
+        .stat-grid {
+            display: grid; grid-template-columns: 1fr 1fr 1fr 1fr;
+            gap: 12px; margin-bottom: 18px;
+        }
+        .stat-box {
+            background: #f8fafc; border: 1px solid #e2e8f0;
+            border-radius: 10px; padding: 14px 12px; text-align: center;
+        }
+        .stat-label {
+            font-size: 8px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.08em; color: #64748b; margin-bottom: 6px;
+        }
+        .stat-val {
+            font-size: 22px; font-weight: 800; line-height: 1;
+        }
+        .score-low { color: #dc2626; }
+        .score-mid { color: #b45309; }
+        .score-high { color: #16a34a; }
+
+        /* ─── Domain Table ───────────────────────────────────────── */
+        .domain-table {
+            width: 100%; border-collapse: collapse; margin-bottom: 10px;
+        }
+        .domain-table th {
+            font-size: 8px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.1em; color: #64748b; text-align: left;
+            padding: 8px 12px; background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .domain-table td {
+            padding: 10px 12px; font-size: 10pt;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .domain-table tr:last-child td { border-bottom: none; }
+        .domain-table .domain-name { font-weight: 600; color: #334155; }
+        .domain-table .domain-score {
+            font-weight: 700; text-align: center;
+            background: #f1f5f9; color: #334155;
+            border-radius: 100px; padding: 3px 14px;
+            display: inline-block; min-width: 44px;
+        }
+
+        /* ─── AI Prediction Section ──────────────────────────────── */
+        .prediction-section {
+            margin-bottom: 28px;
+            page-break-inside: avoid;
+        }
+        .pred-box {
+            background: linear-gradient(135deg, #f0f0ff 0%, #e8e8fd 100%);
+            border: 1px solid rgba(99,102,241,0.2);
+            border-radius: 12px; padding: 18px 20px;
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 16px;
+        }
+        .pred-label-text {
+            font-size: 18px; font-weight: 800; color: #4f46e5;
+            letter-spacing: -0.02em;
+        }
+        .pred-confidence {
+            font-size: 10pt; color: #64748b;
+        }
+        .pred-confidence strong { color: #6366f1; }
+        .badge-demo {
+            background: #e0e7ff; color: #4f46e5; font-size: 8px;
+            padding: 3px 8px; border-radius: 4px; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.05em;
+        }
+        .badge-real {
+            background: #dcfce7; color: #15803d; font-size: 8px;
+            padding: 3px 8px; border-radius: 4px; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.05em;
+        }
+
+        /* Risk chips */
+        .chips-row { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 14px; }
+        .chip-risk {
+            background: #fee2e2; color: #dc2626; font-weight: 700;
+            font-size: 9px; border-radius: 5px; padding: 3px 8px;
+        }
+        .chip-safe {
+            background: #dcfce7; color: #16a34a; font-weight: 700;
+            font-size: 9px; border-radius: 5px; padding: 3px 8px;
+        }
+        .chip-domain {
+            background: #e0e7ff; color: #4f46e5; font-weight: 600;
+            font-size: 9px; border-radius: 6px; padding: 3px 8px;
+        }
+        .subsection-title {
+            font-size: 8px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.08em; color: #64748b; margin-bottom: 8px;
+        }
+
+        /* ─── SHAP Chart (canvas placeholder rendered by Chart.js) ── */
+        .shap-section {
+            margin-top: 16px; page-break-inside: avoid;
+        }
+        .shap-chart-wrap {
+            position: relative; height: 200px; width: 100%;
+        }
+
+        /* ─── SOAP / Narrative ───────────────────────────────────── */
+        .soap-section {
+            margin-bottom: 28px; page-break-inside: avoid;
+        }
+        .soap-content {
+            background: #f8fafc; border: 1px solid #e2e8f0;
+            border-radius: 12px; padding: 20px 22px;
+            font-size: 10pt; line-height: 1.7; color: #334155;
+            border-left: 4px solid #0f766e;
+        }
+        .soap-content p { margin-bottom: 12px; }
+        .soap-content p:last-child { margin-bottom: 0; }
+
+        .narrative-section {
+            margin-bottom: 28px; page-break-inside: avoid;
+        }
+        .narrative-content {
+            background: #fff; border: 1px solid #e2e8f0;
+            border-radius: 12px; padding: 20px 22px;
+            font-size: 10pt; line-height: 1.7; color: #334155;
+            border-left: 4px solid #14b8a6;
+        }
+        .narrative-content p { margin-bottom: 12px; }
+        .narrative-content p:last-child { margin-bottom: 0; }
+
+        /* ─── Disclaimer ─────────────────────────────────────────── */
+        .disclaimer {
+            font-size: 8.5pt; color: #94a3b8; font-style: italic;
+            line-height: 1.5; margin-top: 8px;
+        }
+
+        /* ─── Signature Block ────────────────────────────────────── */
+        .signature-block {
+            margin-top: 36px; page-break-inside: avoid;
+            border-top: 1px solid #e2e8f0; padding-top: 24px;
+        }
+        .sig-grid {
+            display: flex; justify-content: space-between; margin-bottom: 20px;
+        }
+        .sig-field { width: 45%; }
+        .sig-label {
+            font-size: 9pt; font-weight: 600; color: #475569;
+            margin-bottom: 28px; display: block;
+        }
+        .sig-line {
+            border-bottom: 1px solid #334155; width: 100%;
+        }
+
+        /* ─── Footer ─────────────────────────────────────────────── */
+        .pdf-footer {
+            margin-top: 24px; border-top: 1px solid #e2e8f0;
+            padding-top: 14px; text-align: center;
+            font-size: 8pt; color: #94a3b8; line-height: 1.5;
+        }
+        .pdf-footer strong { color: #64748b; }
+
+        /* ─── Utility ────────────────────────────────────────────── */
+        .mb-sm { margin-bottom: 8px; }
+        .mt-sm { margin-top: 8px; }
+        .text-center { text-align: center; }
+        .page-break { page-break-before: always; }
+    </style>
+</head>
+<body>
+
+    <!-- ═══════════════════ CLINICAL HEADER ═══════════════════ -->
+    <div class="pdf-header">
+        <div>
+            <div class="brand">
+                <div class="brand-icon"><i class="bi bi-flower1"></i></div>
+                <div>
+                    <div class="brand-name">AutiBloom</div>
+                    <div class="brand-sub">Clinical Assessment Report</div>
+                </div>
+            </div>
+        </div>
+        <div class="patient-info">
+            <strong>Patient:</strong> {{ entry.child.name }}<br>
+            {% if entry.child.date_of_birth %}<strong>DOB:</strong> {{ entry.child.date_of_birth|date:"M d, Y" }}<br>{% endif %}
+            <strong>Report Date:</strong> {{ generated_date|date:"M d, Y" }}<br>
+            <strong>Assessment Period:</strong> {{ entry.week_start|date:"M d" }} – {{ entry.week_end|date:"M d, Y" }}<br>
+            <strong>Caregiver:</strong> {{ entry.caregiver.get_full_name|default:entry.caregiver.username }}
+        </div>
+    </div>
+
+    <!-- ═══════════════════ CHECK-IN SUMMARY ═══════════════════ -->
+    <div class="summary-section">
+        <div class="section-title">
+            <span class="icon icon-teal">📋</span>
+            Weekly Check-in Summary
+        </div>
+
+        <div class="stat-grid">
+            <div class="stat-box">
+                <div class="stat-label">Overall Score</div>
+                <div class="stat-val {% if entry.overall_score < 1.5 %}score-low{% elif entry.overall_score < 3 %}score-mid{% else %}score-high{% endif %}">
+                    {{ entry.overall_score|floatformat:1 }}
+                </div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Communication</div>
+                <div class="stat-val">{{ entry.communication_score|floatformat:1 }}</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Routines</div>
+                <div class="stat-val">{{ entry.routines_score|floatformat:1 }}</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Flagged Items</div>
+                <div class="stat-val {% if risk_score > 6 %}score-low{% elif risk_score > 2 %}score-mid{% else %}score-high{% endif %}">
+                    {{ risk_score }}<span style="font-size:12px; color:#94a3b8; font-weight:500;"> / 10</span>
+                </div>
+            </div>
+        </div>
+
+        <table class="domain-table">
+            <thead>
+                <tr>
+                    <th style="width:60%;">Domain</th>
+                    <th style="width:40%; text-align:center;">Score (0–4)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="domain-name">Communication</td>
+                    <td style="text-align:center;"><span class="domain-score">{{ entry.communication_score|floatformat:1 }}</span></td>
+                </tr>
+                <tr>
+                    <td class="domain-name">Routines</td>
+                    <td style="text-align:center;"><span class="domain-score">{{ entry.routines_score|floatformat:1 }}</span></td>
+                </tr>
+                <tr>
+                    <td class="domain-name">Emotional Responses</td>
+                    <td style="text-align:center;"><span class="domain-score">{{ entry.emotional_score|floatformat:1 }}</span></td>
+                </tr>
+                <tr>
+                    <td class="domain-name">Sensory Behaviors</td>
+                    <td style="text-align:center;"><span class="domain-score">{{ entry.sensory_score|floatformat:1 }}</span></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- ═══════════════════ AI PREDICTION ═══════════════════ -->
+    <div class="prediction-section">
+        <div class="section-title">
+            <span class="icon icon-indigo">🤖</span>
+            AI Wellbeing Signal
+            {% if explanation.shap_values %}
+                <span class="badge-real" style="margin-left:8px;">✓ ML Model</span>
+            {% else %}
+                <span class="badge-demo" style="margin-left:8px;">Demo Mode</span>
+            {% endif %}
+        </div>
+
+        <div class="pred-box">
+            <div>
+                <div class="pred-label-text">{{ mock_label }}</div>
+                {% if explanation.shap_values %}
+                    <div class="pred-confidence">Model confidence: <strong>{{ mock_confidence }}%</strong></div>
+                {% else %}
+                    <div class="pred-confidence">Estimated pattern match: <strong>{{ mock_confidence }}%</strong></div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Flagged indicators -->
+        {% if explanation.risk_flags %}
+        <div class="subsection-title">Key Indicators Flagged ({{ explanation.risk_count }})</div>
+        <div class="chips-row">
+            {% for flag in explanation.risk_flags %}
+            <span class="chip-risk">{{ flag|upper }}</span>
+            {% endfor %}
+            {% for i in safe_flags %}
+            <span class="chip-safe">{{ i|upper }}</span>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Top domains -->
+        {% if explanation.top_domains %}
+        <div class="subsection-title">Top Contributing Domains</div>
+        <div class="chips-row mb-sm">
+            {% for domain in explanation.top_domains %}
+            <span class="chip-domain">
+                {% if domain == 'communication' %}Communication
+                {% elif domain == 'routines' %}Routines
+                {% elif domain == 'emotional_responses' %}Emotional Responses
+                {% elif domain == 'sensory_behaviors' %}Sensory Behaviors
+                {% else %}{{ domain|title }}{% endif %}
+            </span>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- SHAP Feature Importance Chart (real model only) -->
+        {% if explanation.top_shap_features %}
+        <div class="shap-section">
+            <div class="subsection-title">Feature Importance (SHAP Values)</div>
+            <div class="shap-chart-wrap">
+                <canvas id="shapChart"></canvas>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="disclaimer">
+            {% if explanation.shap_values %}
+                This prediction was generated by a trained Random Forest model (rf-v1.0). It is a screening support tool and does not constitute a clinical diagnosis.
+            {% else %}
+                This is a support tool demonstration using rule-based pattern matching. Not a clinical diagnosis. Results derived from caregiver-reported check-in data.
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- ═══════════════════ SOAP NOTE ═══════════════════ -->
+    {% if soap_note %}
+    <div class="soap-section">
+        <div class="section-title">
+            <span class="icon icon-emerald">🩺</span>
+            Medical Scribe Note (SOAP)
+        </div>
+        <div class="soap-content">
+            {{ soap_note|linebreaksbr }}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- ═══════════════════ PARENT NARRATIVE ═══════════════════ -->
+    {% if narrative %}
+    <div class="narrative-section">
+        <div class="section-title">
+            <span class="icon icon-teal">📝</span>
+            Parent-Friendly Summary
+        </div>
+        <div class="narrative-content">
+            {{ narrative|linebreaksbr }}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- ═══════════════════ SIGNATURE BLOCK ═══════════════════ -->
+    <div class="signature-block">
+        <div class="sig-grid">
+            <div class="sig-field">
+                <span class="sig-label">Clinician Signature:</span>
+                <div class="sig-line"></div>
+            </div>
+            <div class="sig-field">
+                <span class="sig-label">Date:</span>
+                <div class="sig-line"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════ FOOTER ═══════════════════ -->
+    <div class="pdf-footer">
+        <strong>CONFIDENTIAL HEALTH INFORMATION</strong><br>
+        This document contains predictive signals derived from a machine-learning model and caregiver-reported wellbeing data.
+        It is intended strictly as a supplementary clinical decision-support tool and does not constitute a formal medical diagnosis.<br>
+        © {{ generated_date|date:"Y" }} AutiBloom Platform. All rights reserved.
+    </div>
+
+    <!-- ═══════════════════ SHAP CHART JS (if needed) ═══════════════════ -->
+    {% if explanation.top_shap_features %}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script>
+    (function () {
+        const rawFeatures = {{ explanation.top_shap_features | safe }};
+        const FEAT_LABELS = {
+            a1: 'A1 · Social sharing', a2: 'A2 · Eye contact',
+            a3: 'A3 · Pointing (other)', a4: 'A4 · Pointing (show)',
+            a5: 'A5 · Pretend play', a6: 'A6 · Follows gaze',
+            a7: 'A7 · Comforting response', a8: 'A8 · First words',
+            a9: 'A9 · Repetitive object use', a10: 'A10 · Social smile',
+            age_years: 'Age (years)', sex: 'Sex',
+            jaundice: 'Neonatal jaundice', family_asd: 'Family ASD history',
+        };
+        const labels = rawFeatures.map(f => FEAT_LABELS[f.feature] || f.feature.toUpperCase());
+        const values = rawFeatures.map(f => f.value);
+        const bgColors = values.map(v =>
+            v >= 0 ? 'rgba(99,102,241,0.75)' : 'rgba(20,184,166,0.70)'
+        );
+        const borderColors = values.map(v =>
+            v >= 0 ? 'rgba(79,70,229,1)' : 'rgba(15,118,110,1)'
+        );
+        const ctx = document.getElementById('shapChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels,
+                datasets: [{ label: 'SHAP value', data: values, backgroundColor: bgColors, borderColor: borderColors, borderWidth: 1.5, borderRadius: 6 }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { grid: { color: 'rgba(0,0,0,.05)' }, ticks: { font: { size: 10 }, color: '#64748b' }, title: { display: true, text: 'SHAP value', color: '#94a3b8', font: { size: 10 } } },
+                    y: { grid: { display: false }, ticks: { font: { size: 10, weight: '500' }, color: '#334155' } }
+                }
+            }
+        });
+        // Signal chart rendered
+        window.__chartRendered = true;
+    })();
+    </script>
+    {% endif %}
+</body>
+</html>
